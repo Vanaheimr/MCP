@@ -5,6 +5,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
 
     internal static class SynchronizationExtensions
     {
+
         /// <summary>
         /// Asynchronously acquires a lock on the semaphore and returns a disposable object that releases the lock when disposed.
         /// </summary>
@@ -16,10 +17,14 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// similar to how the `lock` statement is used in synchronous code.
         /// </remarks>
         /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-        public static async ValueTask<Releaser> LockAsync(this SemaphoreSlim semaphore, CancellationToken cancellationToken = default)
+        public static async ValueTask<Releaser> LockAsync(this SemaphoreSlim  semaphore,
+                                                          CancellationToken   cancellationToken = default)
         {
+
             await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
             return new(semaphore);
+
         }
 
         /// <summary>
@@ -31,6 +36,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// </remarks>
         public readonly struct Releaser(SemaphoreSlim semaphore) : IDisposable
         {
+
             /// <summary>
             /// Releases the semaphore.
             /// </summary>
@@ -39,6 +45,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             /// in a using statement or expression.
             /// </remarks>
             public void Dispose() => semaphore.Release();
+
         }
     }
 

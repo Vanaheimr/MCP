@@ -18,7 +18,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// notification, clients may refresh their tool list by calling the appropriate 
         /// method to get the updated list of tools.
         /// </remarks>
-        public const string ToolListChangedNotification = "notifications/tools/list_changed";
+        public const String ToolListChangedNotification = "notifications/tools/list_changed";
 
         /// <summary>
         /// The name of the notification sent by the server when the list of available prompts changes.
@@ -29,7 +29,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// notification, clients may refresh their prompt list by calling the appropriate 
         /// method to get the updated list of prompts.
         /// </remarks>
-        public const string PromptListChangedNotification = "notifications/prompts/list_changed";
+        public const String PromptListChangedNotification = "notifications/prompts/list_changed";
 
         /// <summary>
         /// The name of the notification sent by the server when the list of available resources changes.
@@ -40,7 +40,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// notification, clients may refresh their resource list by calling the appropriate 
         /// method to get the updated list of resources.
         /// </remarks>
-        public const string ResourceListChangedNotification = "notifications/resources/list_changed";
+        public const String ResourceListChangedNotification = "notifications/resources/list_changed";
 
         /// <summary>
         /// The name of the notification sent by the server when a resource is updated.
@@ -49,7 +49,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// This notification is used to inform clients about changes to a specific resource they have subscribed to.
         /// When a resource is updated, the server sends this notification to all clients that have subscribed to that resource.
         /// </remarks>
-        public const string ResourceUpdatedNotification = "notifications/resources/updated";
+        public const String ResourceUpdatedNotification = "notifications/resources/updated";
 
         /// <summary>
         /// The name of the notification sent by the client when roots have been updated.
@@ -66,7 +66,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// method to get the updated list of roots from the client.
         /// </para>
         /// </remarks>
-        public const string RootsUpdatedNotification = "notifications/roots/list_changed";
+        public const String RootsUpdatedNotification = "notifications/roots/list_changed";
 
         /// <summary>
         /// The name of the notification sent by the server when a log message is generated.
@@ -83,7 +83,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// the server may determine which messages to send based on its own configuration.
         /// </para>
         /// </remarks>
-        public const string LoggingMessageNotification = "notifications/message";
+        public const String LoggingMessageNotification = "notifications/message";
 
         /// <summary>
         /// The name of the notification sent from the client to the server after initialization has finished.
@@ -99,7 +99,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// further requests from the client.
         /// </para>
         /// </remarks>
-        public const string InitializedNotification = "notifications/initialized";
+        public const String InitializedNotification = "notifications/initialized";
 
         /// <summary>
         /// The name of the notification sent to inform the receiver of a progress update for a long-running request.
@@ -117,7 +117,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// processing tasks.
         /// </para>
         /// </remarks>
-        public const string ProgressNotification = "notifications/progress";
+        public const String ProgressNotification = "notifications/progress";
 
         /// <summary>
         /// The name of the notification sent to indicate that a previously-issued request should be canceled.
@@ -134,7 +134,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// A client must not attempt to cancel its `initialize` request.
         /// </para>
         /// </remarks>
-        public const string CancelledNotification = "notifications/cancelled";
+        public const String CancelledNotification = "notifications/cancelled";
 
     }
 

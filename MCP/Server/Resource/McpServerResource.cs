@@ -13,7 +13,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     /// <see cref="McpServerResource"/> is an abstract base class that represents an MCP resource for use in the server (as opposed
     /// to <see cref="Resource"/> or <see cref="ResourceTemplate"/>, which provide the protocol representations of a resource). Instances of 
     /// <see cref="McpServerResource"/> can be added into a <see cref="IServiceCollection"/> to be picked up automatically when
-    /// <see cref="McpServerFactory"/> is used to create an <see cref="IMcpServer"/>, or added into a <see cref="McpServerPrimitiveCollection{McpServerResource}"/>.
+    /// <see cref="McpServerFactory"/> is used to create an <see cref="IMcpServer"/>, or added into a <see cref="MCPServerPrimitiveCollection{McpServerResource}"/>.
     /// </para>
     /// <para>
     /// Most commonly, <see cref="McpServerResource"/> instances are created using the static <see cref="M:McpServerResource.Create"/> methods.
@@ -36,7 +36,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     ///     <description>
     ///       <see cref="CancellationToken"/> parameters are automatically bound to a <see cref="CancellationToken"/> provided by the
     ///       <see cref="IMcpServer"/> and that respects any <see cref="CancelledNotification"/>s sent by the client for this operation's
-    ///       <see cref="RequestId"/>.
+    ///       <see cref="Request_Id"/>.
     ///     </description>
     ///   </item>
     ///   <item>
@@ -118,7 +118,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     /// Other returned types will result in an <see cref="InvalidOperationException"/> being thrown.
     /// </para>
     /// </remarks>
-    public abstract class McpServerResource : IMcpServerPrimitive
+    public abstract class McpServerResource : IMCPServerPrimitive
     {
         /// <summary>Initializes a new instance of the <see cref="McpServerResource"/> class.</summary>
         protected McpServerResource()
@@ -234,7 +234,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         public override string ToString() => ProtocolResourceTemplate.UriTemplate;
 
         /// <inheritdoc />
-        string IMcpServerPrimitive.Id => ProtocolResourceTemplate.UriTemplate;
+        string IMCPServerPrimitive.Id => ProtocolResourceTemplate.UriTemplate;
 
     }
 

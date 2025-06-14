@@ -1,6 +1,4 @@
 ﻿
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization.Metadata;
@@ -8,8 +6,9 @@ using System.Text.Json.Serialization.Metadata;
 namespace org.GraphDefined.Vanaheimr.Hermod.MCP
 {
 
-    internal sealed class RequestHandlers : Dictionary<string, Func<JSONRPCRequest, CancellationToken, Task<JsonNode?>>>
+    internal sealed class RequestHandlers : Dictionary<String, Func<JSONRPCRequest, CancellationToken, Task<JsonNode?>>>
     {
+
         /// <summary>
         /// Registers a handler for incoming requests of a specific method in the MCP protocol.
         /// </summary>
@@ -30,24 +29,25 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// a response object that will be serialized back to the client.
         /// </para>
         /// </remarks>
-        public void Set<TRequest, TResponse>(
-            string method,
-            Func<TRequest?, ITransport?, CancellationToken, ValueTask<TResponse>> handler,
-            JsonTypeInfo<TRequest> requestTypeInfo,
-            JsonTypeInfo<TResponse> responseTypeInfo)
+        public void Set<TRequest, TResponse>(String                                                                 method,
+                                             Func<TRequest?, ITransport?, CancellationToken, ValueTask<TResponse>>  handler,
+                                             JsonTypeInfo<TRequest>                                                 requestTypeInfo,
+                                             JsonTypeInfo<TResponse>                                                responseTypeInfo)
         {
+
             //Throw.IfNull(method);
             //Throw.IfNull(handler);
             //Throw.IfNull(requestTypeInfo);
             //Throw.IfNull(responseTypeInfo);
 
-            this[method] = async (request, cancellationToken) =>
-            {
+            this[method] = async (request, cancellationToken) => {
                 TRequest? typedRequest = JsonSerializer.Deserialize(request.Params, requestTypeInfo);
-                object? result = await handler(typedRequest, request.RelatedTransport, cancellationToken).ConfigureAwait(false);
+                Object? result = await handler(typedRequest, request.RelatedTransport, cancellationToken).ConfigureAwait(false);
                 return JsonSerializer.SerializeToNode(result, responseTypeInfo);
             };
+
         }
+
     }
 
 }

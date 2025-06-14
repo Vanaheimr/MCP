@@ -76,7 +76,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
                 Name = options?.Name ?? method.GetCustomAttribute<McpServerResourceAttribute>()?.Name,
                 Description = options?.Description,
                 MarshalResult = static (result, _, cancellationToken) => new ValueTask<object?>(result),
-                SerializerOptions = McpJsonUtilities.DefaultOptions,
+                SerializerOptions = MCPJSONUtilities.DefaultOptions,
                 ConfigureParameterBinding = pi =>
                 {
                     if (pi.ParameterType == typeof(RequestContext<ReadResourceRequestParams>))

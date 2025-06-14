@@ -1,4 +1,19 @@
-﻿using org.GraphDefined.Vanaheimr.Hermod.MCP.Client;
+﻿/*
+ * Copyright (c) 2010-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
+ * This file is part of Vanaheimr MCP <https://www.github.com/Vanaheimr/MCP>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
 {
@@ -6,8 +21,11 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     /// <summary>
     /// Provides configuration options for the MCP server.
     /// </summary>
-    public class McpServerOptions
+    public class MCPServerOptions
     {
+
+        #region Properties
+
         /// <summary>
         /// Gets or sets information about this server implementation, including its name and version.
         /// </summary>
@@ -15,7 +33,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// This information is sent to the client during initialization to identify the server.
         /// It's displayed in client logs and can be used for debugging and compatibility checks.
         /// </remarks>
-        public Implementation? ServerInfo { get; set; }
+        public ClientInfo?          ServerInfo               { get; }
 
         /// <summary>
         /// Gets or sets server capabilities to advertise to the client.
@@ -25,7 +43,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// Capabilities can include "tools", "prompts", "resources", "logging", and other 
         /// protocol-specific functionality.
         /// </remarks>
-        public ServerCapabilities? Capabilities { get; set; }
+        public ServerCapabilities?  Capabilities             { get; }
 
         /// <summary>
         /// Gets or sets the protocol version supported by this server, using a date-based versioning scheme.
@@ -34,7 +52,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// The protocol version defines which features and message formats this server supports.
         /// This uses a date-based versioning scheme in the format "YYYY-MM-DD".
         /// </remarks>
-        public string ProtocolVersion { get; set; } = "2024-11-05";
+        public String               ProtocolVersion          { get; }
 
         /// <summary>
         /// Gets or sets a timeout used for the client-server initialization handshake sequence.
@@ -44,7 +62,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// the initialization protocol handshake. If the client doesn't respond within this timeframe,
         /// the initialization process will be aborted.
         /// </remarks>
-        public TimeSpan InitializationTimeout { get; set; } = TimeSpan.FromSeconds(60);
+        public TimeSpan             InitializationTimeout    { get; }
 
         /// <summary>
         /// Gets or sets optional server instructions to send to clients.
@@ -56,7 +74,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// Client applications typically use these instructions as system messages for LLM interactions
         /// to provide context about available functionality.
         /// </remarks>
-        public string? ServerInstructions { get; set; }
+        public String?              ServerInstructions       { get; }
 
         /// <summary>
         /// Gets or sets whether to create a new service provider scope for each handled request.
@@ -65,7 +83,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// The default is <see langword="true"/>. When <see langword="true"/>, each invocation of a request
         /// handler will be invoked within a new service scope.
         /// </remarks>
-        public bool ScopeRequests { get; set; } = true;
+        public Boolean              ScopeRequests            { get; }
 
         /// <summary>
         /// Gets or sets preexisting knowledge about the client including its name and version to help support
@@ -76,7 +94,33 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// When not specified, this information is sourced from the client's initialize request.
         /// </para>
         /// </remarks>
-        public Implementation? KnownClientInfo { get; set; }
+        public ClientInfo?          KnownClientInfo          { get; }
+
+        #endregion
+
+        #region Constructor(s)
+
+        public MCPServerOptions(ClientInfo?          ServerInfo              = null,
+                                ServerCapabilities?  Capabilities            = null,
+                                String?              ProtocolVersion         = null,
+                                TimeSpan?            InitializationTimeout   = null,
+                                String?              ServerInstructions      = null,
+                                Boolean?             ScopeRequests           = null,
+                                ClientInfo?          KnownClientInfo         = null)
+        {
+
+            this.ServerInfo             = ServerInfo;
+            this.Capabilities           = Capabilities;
+            this.ProtocolVersion        = ProtocolVersion       ?? "2024-11-05";
+            this.InitializationTimeout  = InitializationTimeout ?? TimeSpan.FromSeconds(60);
+            this.ServerInstructions     = ServerInstructions;
+            this.ScopeRequests          = ScopeRequests         ?? true;
+            this.KnownClientInfo        = KnownClientInfo;
+
+        }
+
+        #endregion
+
 
     }
 

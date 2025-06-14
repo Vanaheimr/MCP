@@ -26,6 +26,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
     /// </remarks>
     public static class McpEndpointExtensions
     {
+
         /// <summary>
         /// Sends a JSON-RPC request and attempts to deserialize the result to <typeparamref name="TResult"/>.
         /// </summary>
@@ -43,11 +44,11 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             string method,
             TParameters parameters,
             JsonSerializerOptions? serializerOptions = null,
-            RequestId requestId = default,
+            Request_Id requestId = default,
             CancellationToken cancellationToken = default)
             where TResult : notnull
         {
-            serializerOptions ??= McpJsonUtilities.DefaultOptions;
+            serializerOptions ??= MCPJSONUtilities.DefaultOptions;
             serializerOptions.MakeReadOnly();
 
             JsonTypeInfo<TParameters> paramsTypeInfo = serializerOptions.GetTypeInfo<TParameters>();
@@ -74,7 +75,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             TParameters parameters,
             JsonTypeInfo<TParameters> parametersTypeInfo,
             JsonTypeInfo<TResult> resultTypeInfo,
-            RequestId requestId = default,
+            Request_Id requestId = default,
             CancellationToken cancellationToken = default)
             where TResult : notnull
         {
@@ -83,10 +84,10 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             //Throw.IfNull(parametersTypeInfo);
             //Throw.IfNull(resultTypeInfo);
 
-            JSONRPCRequest jsonRpcRequest = new() {
-                Id = requestId,
-                Method = method,
-                Params = JsonSerializer.SerializeToNode(parameters, parametersTypeInfo),
+            JSONRPCRequest jsonRpcRequest = new (requestId, method, JsonSerializer.SerializeToNode(parameters, parametersTypeInfo)) {
+                //Id = requestId,
+                //Method = method,
+                //Params = JsonSerializer.SerializeToNode(parameters, parametersTypeInfo)
             };
 
             JSONRPCResponse response = await endpoint.SendRequestAsync(jsonRpcRequest, cancellationToken).ConfigureAwait(false);
@@ -111,7 +112,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         {
             //Throw.IfNull(client);
             //Throw.IfNullOrWhiteSpace(method);
-            return client.SendMessageAsync(new JSONRPCNotification { Method = method }, cancellationToken);
+            return client.SendMessageAsync(new JSONRPCNotification(method), cancellationToken);
         }
 
         /// <summary>
@@ -145,7 +146,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             JsonSerializerOptions? serializerOptions = null,
             CancellationToken cancellationToken = default)
         {
-            serializerOptions ??= McpJsonUtilities.DefaultOptions;
+            serializerOptions ??= MCPJSONUtilities.DefaultOptions;
             serializerOptions.MakeReadOnly();
 
             JsonTypeInfo<TParameters> parametersTypeInfo = serializerOptions.GetTypeInfo<TParameters>();
@@ -172,7 +173,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             //Throw.IfNull(parametersTypeInfo);
 
             JsonNode? parametersJson = JsonSerializer.SerializeToNode(parameters, parametersTypeInfo);
-            return endpoint.SendMessageAsync(new JSONRPCNotification { Method = method, Params = parametersJson }, cancellationToken);
+            return endpoint.SendMessageAsync(new JSONRPCNotification(method, parametersJson), cancellationToken);
         }
 
         /// <summary>
@@ -209,7 +210,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                     ProgressToken = progressToken,
                     Progress = progress,
                 },
-                McpJsonUtilities.JsonContext.Default.ProgressNotification,
+                MCPJSONUtilities.JsonContext.Default.ProgressNotification,
                 cancellationToken);
         }
 

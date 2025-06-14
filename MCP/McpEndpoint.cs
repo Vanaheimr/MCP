@@ -14,12 +14,15 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
     /// This is especially true as a client represents a connection to one and only one server, and vice versa.
     /// Any multi-client or multi-server functionality should be implemented at a higher level of abstraction.
     /// </summary>
-    internal abstract partial class McpEndpoint : IAsyncDisposable
+    internal abstract partial class MCPEndpoint : IAsyncDisposable
     {
-        /// <summary>Cached naming information used for name/version when none is specified.</summary>
+
+        /// <summary>
+        /// Cached naming information used for name/version when none is specified.
+        /// </summary>
         internal static AssemblyName DefaultAssemblyName { get; } = (Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly()).GetName();
 
-        private McpSession? _session;
+        private MCPSession?              _session;
         private CancellationTokenSource? _sessionCts;
 
         private readonly SemaphoreSlim _disposeLock = new(1, 1);
@@ -28,10 +31,10 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         protected readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="McpEndpoint"/> class.
+        /// Initializes a new instance of the <see cref="MCPEndpoint"/> class.
         /// </summary>
         /// <param name="loggerFactory">The logger factory.</param>
-        protected McpEndpoint(ILoggerFactory? loggerFactory = null)
+        protected MCPEndpoint(ILoggerFactory? loggerFactory = null)
         {
             _logger = loggerFactory?.CreateLogger(GetType()) ?? NullLogger.Instance;
         }
@@ -61,7 +64,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
 
         protected void InitializeSession(ITransport sessionTransport)
         {
-            _session = new McpSession(this is IMCPServer, sessionTransport, EndpointName, RequestHandlers, NotificationHandlers, _logger);
+            _session = new MCPSession(this is IMCPServer, sessionTransport, EndpointName, RequestHandlers, NotificationHandlers, _logger);
         }
 
         [MemberNotNull(nameof(MessageProcessingTask))]
@@ -122,22 +125,18 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             LogEndpointShutDown(EndpointName);
         }
 
-        protected McpSession GetSessionOrThrow()
+        protected MCPSession GetSessionOrThrow()
         {
-#if NET
+
             ObjectDisposedException.ThrowIf(_disposed, this);
-#else
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(GetType().Name);
-        }
-#endif
 
             return _session ?? throw new InvalidOperationException($"This should be unreachable from public API! Call {nameof(InitializeSession)} before sending messages.");
+
         }
 
         [LoggerMessage(Level = LogLevel.Information, Message = "{EndpointName} shutting down.")]
         private partial void LogEndpointShuttingDown(string endpointName);
+
 
         [LoggerMessage(Level = LogLevel.Information, Message = "{EndpointName} shut down.")]
         private partial void LogEndpointShutDown(string endpointName);

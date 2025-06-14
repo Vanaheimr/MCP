@@ -1,11 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-
+﻿
 namespace org.GraphDefined.Vanaheimr.Hermod.MCP
 {
 
@@ -15,52 +8,68 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
     /// <remarks>
     /// This exception is used to represent failures to do with protocol-level concerns, such as invalid JSON-RPC requests,
     /// invalid parameters, or internal errors. It is not intended to be used for application-level errors.
-    /// <see cref="Exception.Message"/> or <see cref="ErrorCode"/> from a <see cref="McpException"/> may be 
+    /// <see cref="Exception.Message"/> or <see cref="ErrorCode"/> from a <see cref="MCPException"/> may be 
     /// propagated to the remote endpoint; sensitive information should not be included. If sensitive details need
     /// to be included, a different exception type should be used.
     /// </remarks>
-    public class McpException : Exception
+    public class MCPException : Exception
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="McpException"/> class.
-        /// </summary>
-        public McpException()
-        {
-        }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="McpException"/> class with a specified error message.
+        /// Initializes a new instance of the <see cref="MCPException"/> class.
         /// </summary>
-        /// <param name="message">The message that describes the error.</param>
-        public McpException(string message) : base(message)
-        {
-        }
+        public MCPException()
+        { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="McpException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.
+        /// Initializes a new instance of the <see cref="MCPException"/> class with a specified error message.
         /// </summary>
         /// <param name="message">The message that describes the error.</param>
-        /// <param name="innerException">The exception that is the cause of the current exception, or a null reference if no inner exception is specified.</param>
-        public McpException(string message, Exception? innerException) : base(message, innerException)
-        {
-        }
+        public MCPException(String  message)
+
+            : base(message)
+
+        { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="McpException"/> class with a specified error message and JSON-RPC error code.
-        /// </summary>
-        /// <param name="message">The message that describes the error.</param>
-        /// <param name="errorCode">A <see cref="McpErrorCode"/>.</param>
-        public McpException(string message, McpErrorCode errorCode) : this(message, null, errorCode)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="McpException"/> class with a specified error message, inner exception, and JSON-RPC error code.
+        /// Initializes a new instance of the <see cref="MCPException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.
         /// </summary>
         /// <param name="message">The message that describes the error.</param>
         /// <param name="innerException">The exception that is the cause of the current exception, or a null reference if no inner exception is specified.</param>
-        /// <param name="errorCode">A <see cref="McpErrorCode"/>.</param>
-        public McpException(string message, Exception? innerException, McpErrorCode errorCode) : base(message, innerException)
+        public MCPException(String      message,
+                            Exception?  innerException)
+
+            : base(message, innerException)
+
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MCPException"/> class with a specified error message and JSON-RPC error code.
+        /// </summary>
+        /// <param name="message">The message that describes the error.</param>
+        /// <param name="errorCode">A <see cref="MCPErrorCodes"/>.</param>
+        public MCPException(String         message,
+                            MCPErrorCodes  errorCode)
+
+            : this (message,
+                    null,
+                    errorCode)
+
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MCPException"/> class with a specified error message, inner exception, and JSON-RPC error code.
+        /// </summary>
+        /// <param name="message">The message that describes the error.</param>
+        /// <param name="innerException">The exception that is the cause of the current exception, or a null reference if no inner exception is specified.</param>
+        /// <param name="errorCode">A <see cref="MCPErrorCodes"/>.</param>
+        public MCPException(String         message,
+                            Exception?     innerException,
+                            MCPErrorCodes  errorCode)
+
+            : base (message,
+                    innerException)
+
         {
             ErrorCode = errorCode;
         }
@@ -78,7 +87,8 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// <item><description>-32603: Internal error - Internal JSON-RPC error</description></item>
         /// </list>
         /// </remarks>
-        public McpErrorCode ErrorCode { get; } = McpErrorCode.InternalError;
+        public MCPErrorCodes ErrorCode { get; }
+            = MCPErrorCodes.InternalError;
 
     }
 

@@ -70,7 +70,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
                 Name = options?.Name ?? method.GetCustomAttribute<McpServerPromptAttribute>()?.Name,
                 Description = options?.Description,
                 MarshalResult = static (result, _, cancellationToken) => new ValueTask<object?>(result),
-                SerializerOptions = options?.SerializerOptions ?? McpJsonUtilities.DefaultOptions,
+                SerializerOptions = options?.SerializerOptions ?? MCPJSONUtilities.DefaultOptions,
                 ConfigureParameterBinding = pi =>
                 {
                     if (pi.ParameterType == typeof(RequestContext<GetPromptRequestParams>))

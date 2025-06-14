@@ -16,6 +16,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
     /// </remarks>
     public class PaginatedRequestParams : RequestParams
     {
+
         /// <summary>
         /// Gets or sets an opaque token representing the current pagination position.
         /// </summary>

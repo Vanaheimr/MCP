@@ -1,38 +1,55 @@
-﻿using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using System.Text.Json;
+﻿/*
+ * Copyright (c) 2010-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
+ * This file is part of Vanaheimr MCP <https://www.github.com/Vanaheimr/MCP>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#region Usings
+
+//using System.Text.Json;
+
+//using Microsoft.Extensions.AI;
+//using Microsoft.Extensions.DependencyInjection;
+
+#endregion
 
 namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
 {
 
     /// <summary>
-    /// Used to indicate that a method should be considered an <see cref="McpServerTool"/>.
+    /// Used to indicate that a method should be considered an <see cref="AMCPServerTool"/>.
     /// </summary>
     /// <remarks>
     /// <para>
     /// This attribute is applied to methods that should be exposed as tools in the Model Context Protocol. When a class 
-    /// containing methods marked with this attribute is registered with <see cref="McpServerBuilderExtensions"/>,
+    /// containing methods marked with this attribute is registered with <see cref="MCPServerBuilderExtensions"/>,
     /// these methods become available as tools that can be called by MCP clients.
     /// </para>
     /// <para>
-    /// When methods are provided directly to <see cref="M:McpServerTool.Create"/>, the attribute is not required.
+    /// When methods are provided directly to <see cref="M:MCPServerTool.Create"/>, the attribute is not required.
     /// </para>
     /// <para>
     /// By default, parameters are sourced from the <see cref="CallToolRequestParams.Arguments"/> dictionary, which is a collection
-    /// of key/value pairs, and are represented in the JSON schema for the function, as exposed in the returned <see cref="McpServerTool"/>'s
-    /// <see cref="McpServerTool.ProtocolTool"/>'s <see cref="Tool.InputSchema"/>. Those parameters are deserialized from the
+    /// of key/value pairs, and are represented in the JSON schema for the function, as exposed in the returned <see cref="AMCPServerTool"/>'s
+    /// <see cref="AMCPServerTool.ProtocolTool"/>'s <see cref="Tool.InputSchema"/>. Those parameters are deserialized from the
     /// <see cref="JsonElement"/> values in that collection. There are a few exceptions to this:
     /// <list type="bullet">
     ///   <item>
     ///     <description>
     ///       <see cref="CancellationToken"/> parameters are automatically bound to a <see cref="CancellationToken"/> provided by the
-    ///       <see cref="IMcpServer"/> and that respects any <see cref="CancelledNotification"/>s sent by the client for this operation's
-    ///       <see cref="RequestId"/>. The parameter is not included in the generated JSON schema.
+    ///       <see cref="IMCPServer"/> and that respects any <see cref="CancelledNotification"/>s sent by the client for this operation's
+    ///       <see cref="Request_Id"/>. The parameter is not included in the generated JSON schema.
     ///     </description>
     ///   </item>
     ///   <item>
@@ -43,7 +60,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     ///   </item>
     ///   <item>
     ///     <description>
-    ///       <see cref="IMcpServer"/> parameters are not included in the JSON schema and are bound directly to the <see cref="IMcpServer"/>
+    ///       <see cref="IMCPServer"/> parameters are not included in the JSON schema and are bound directly to the <see cref="IMCPServer"/>
     ///       instance associated with this request's <see cref="RequestContext{CallToolRequestParams}"/>. Such parameters may be used to understand
     ///       what server is being used to process the request, and to interact with the client issuing the request to that server.
     ///     </description>
@@ -59,8 +76,8 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     ///   </item>
     ///   <item>
     ///     <description>
-    ///       When the <see cref="McpServerTool"/> is constructed, it may be passed an <see cref="IServiceProvider"/> via 
-    ///       <see cref="McpServerToolCreateOptions.Services"/>. Any parameter that can be satisfied by that <see cref="IServiceProvider"/>
+    ///       When the <see cref="AMCPServerTool"/> is constructed, it may be passed an <see cref="IServiceProvider"/> via 
+    ///       <see cref="MCPServerToolCreateOptions.Services"/>. Any parameter that can be satisfied by that <see cref="IServiceProvider"/>
     ///       according to <see cref="IServiceProviderIsService"/> will not be included in the generated JSON schema and will be resolved 
     ///       from the <see cref="IServiceProvider"/> provided to when the tool is invoked rather than from the argument collection.
     ///     </description>
@@ -76,8 +93,8 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     /// </para>
     /// <para>
     /// All other parameters are deserialized from the <see cref="JsonElement"/>s in the <see cref="CallToolRequestParams.Arguments"/> dictionary, 
-    /// using the <see cref="JsonSerializerOptions"/> supplied in <see cref="McpServerToolCreateOptions.SerializerOptions"/>, or if none was provided, 
-    /// using <see cref="McpJsonUtilities.DefaultOptions"/>.
+    /// using the <see cref="JsonSerializerOptions"/> supplied in <see cref="MCPServerToolCreateOptions.SerializerOptions"/>, or if none was provided, 
+    /// using <see cref="MCPJSONUtilities.DefaultOptions"/>.
     /// </para>
     /// <para>
     /// In general, the data supplied via the <see cref="CallToolRequestParams.Arguments"/>'s dictionary is passed along from the caller and
@@ -128,30 +145,30 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     /// </list>
     /// </remarks>
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class McpServerToolAttribute : Attribute
+    public sealed class MCPServerToolAttribute : Attribute
     {
+
         // Defaults based on the spec
-        private const bool DestructiveDefault = true;
-        private const bool IdempotentDefault = false;
-        private const bool OpenWorldDefault = true;
-        private const bool ReadOnlyDefault = false;
+        private const Boolean  DestructiveDefault   = true;
+        private const Boolean  IdempotentDefault    = false;
+        private const Boolean  OpenWorldDefault     = true;
+        private const Boolean  ReadOnlyDefault      = false;
 
         // Nullable backing fields so we can distinguish
-        internal bool? _destructive;
-        internal bool? _idempotent;
-        internal bool? _openWorld;
-        internal bool? _readOnly;
+        internal Boolean? _destructive;
+        internal Boolean? _idempotent;
+        internal Boolean? _openWorld;
+        internal Boolean? _readOnly;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="McpServerToolAttribute"/> class.
+        /// Initializes a new instance of the <see cref="MCPServerToolAttribute"/> class.
         /// </summary>
-        public McpServerToolAttribute()
-        {
-        }
+        public MCPServerToolAttribute()
+        { }
 
         /// <summary>Gets the name of the tool.</summary>
         /// <remarks>If <see langword="null"/>, the method name will be used.</remarks>
-        public string? Name { get; set; }
+        public String?  Name     { get; set; }
 
         /// <summary>
         /// Gets or sets a human-readable title for the tool that can be displayed to users.
@@ -167,7 +184,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// include spaces, special characters, and be phrased in a more natural language style.
         /// </para>
         /// </remarks>
-        public string? Title { get; set; }
+        public String?  Title    { get; set; }
 
         /// <summary>
         /// Gets or sets whether the tool may perform destructive updates to its environment.
@@ -182,7 +199,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// The default is <see langword="true"/>.
         /// </para>
         /// </remarks>
-        public bool Destructive
+        public Boolean  Destructive
         {
             get => _destructive ?? DestructiveDefault;
             set => _destructive = value;
@@ -200,7 +217,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// The default is <see langword="false"/>.
         /// </para>
         /// </remarks>
-        public bool Idempotent
+        public Boolean  Idempotent
         {
             get => _idempotent ?? IdempotentDefault;
             set => _idempotent = value;
@@ -218,7 +235,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// The default is <see langword="true"/>.
         /// </para>
         /// </remarks>
-        public bool OpenWorld
+        public Boolean  OpenWorld
         {
             get => _openWorld ?? OpenWorldDefault;
             set => _openWorld = value;
@@ -240,11 +257,12 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// The default is <see langword="false"/>.
         /// </para>
         /// </remarks>
-        public bool ReadOnly
+        public Boolean  ReadOnly
         {
             get => _readOnly ?? ReadOnlyDefault;
             set => _readOnly = value;
         }
+
     }
 
 }

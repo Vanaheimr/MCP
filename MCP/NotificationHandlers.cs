@@ -1,21 +1,24 @@
 ﻿
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization.Metadata;
 
 namespace org.GraphDefined.Vanaheimr.Hermod.MCP
 {
 
-    /// <summary>Provides thread-safe storage for notification handlers.</summary>
+    /// <summary>
+    /// Provides thread-safe storage for notification handlers.
+    /// </summary>
     internal sealed class NotificationHandlers
     {
-        /// <summary>A dictionary of linked lists of registrations, indexed by the notification method.</summary>
-        private readonly Dictionary<string, Registration> _handlers = [];
 
-        /// <summary>Gets the object to be used for all synchronization.</summary>
-        private object SyncObj => _handlers;
+        /// <summary>
+        /// A dictionary of linked lists of registrations, indexed by the notification method.
+        /// </summary>
+        private readonly Dictionary<String, Registration> _handlers = [];
+
+        /// <summary>
+        /// Gets the object to be used for all synchronization.
+        /// </summary>
+        private Object SyncObj => _handlers;
 
         /// <summary>
         /// Registers a collection of notification handlers at once.
@@ -43,7 +46,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// with the corresponding method name is received.
         /// </para>
         /// </remarks>
-        public void RegisterRange(IEnumerable<KeyValuePair<string, Func<JSONRPCNotification, CancellationToken, ValueTask>>> handlers)
+        public void RegisterRange(IEnumerable<KeyValuePair<String, Func<JSONRPCNotification, CancellationToken, ValueTask>>> handlers)
         {
             foreach (var entry in handlers)
             {
@@ -68,11 +71,16 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// Multiple handlers can be registered for the same method. When a notification for that method is received,
         /// all registered handlers will be invoked in reverse order of registration (newest first).
         /// </remarks>
-        public IAsyncDisposable Register(
-            string method, Func<JSONRPCNotification, CancellationToken, ValueTask> handler, bool temporary = true)
+        public IAsyncDisposable Register(String                                                   method,
+                                         Func<JSONRPCNotification, CancellationToken, ValueTask>  handler,
+                                         Boolean                                                  temporary   = true)
         {
+
             // Create the new registration instance.
-            Registration reg = new(this, method, handler, temporary);
+            Registration reg = new (this,
+                                    method,
+                                    handler,
+                                    temporary);
 
             // Store the registration into the dictionary. If there's not currently a registration for the method,
             // then this registration instance just becomes the single value. If there is currently a registration,
@@ -80,6 +88,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             // item in the list.
             lock (SyncObj)
             {
+
                 if (_handlers.TryGetValue(method, out var existingHandlerHead))
                 {
                     reg.Next = existingHandlerHead;
@@ -87,11 +96,13 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                 }
 
                 _handlers[method] = reg;
+
             }
 
             // Return the new registration. It must be disposed of when no longer used, or it will end up being
             // leaked into the list. This is the same as with CancellationToken.Register.
             return reg;
+
         }
 
         /// <summary>
@@ -105,16 +116,17 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// If any handler throws an exception, all handlers will still be invoked, and an <see cref="AggregateException"/> 
         /// containing all exceptions will be thrown after all handlers have been invoked.
         /// </remarks>
-        public async Task InvokeHandlers(string method, JSONRPCNotification notification, CancellationToken cancellationToken)
+        public async Task InvokeHandlers(String               method,
+                                         JSONRPCNotification  notification,
+                                         CancellationToken    cancellationToken)
         {
+
             // If there are no handlers registered for this method, we're done.
             Registration? reg;
             lock (SyncObj)
             {
                 if (!_handlers.TryGetValue(method, out reg))
-                {
                     return;
-                }
             }
 
             // Invoke each handler in the list. We guarantee that we'll try to invoke
@@ -141,15 +153,22 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             }
 
             if (exceptions is not null)
-            {
                 throw new AggregateException(exceptions);
-            }
+
         }
 
-        /// <summary>Provides storage for a handler registration.</summary>
-        private sealed class Registration(
-            NotificationHandlers handlers, string method, Func<JSONRPCNotification, CancellationToken, ValueTask> handler, bool unregisterable) : IAsyncDisposable
+        /// <summary>
+        /// Provides storage for a handler registration.
+        /// </summary>
+        private sealed class Registration(NotificationHandlers                                     handlers,
+                                          String                                                   method,
+                                          Func<JSONRPCNotification, CancellationToken, ValueTask>  handler,
+                                          Boolean                                                  unregisterable)
+
+            : IAsyncDisposable
+
         {
+
             /// <summary>Used to prevent deadlocks during disposal.</summary>
             /// <remarks>
             /// The task returned from <see cref="DisposeAsync"/> does not complete until all invocations of the handler
@@ -292,6 +311,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             /// <summary>Invoke the handler associated with the temporary registration.</summary>
             private async ValueTask InvokeTemporaryAsync(JSONRPCNotification notification, CancellationToken cancellationToken)
             {
+
                 // Check whether we need to handle this registration. If DisposeAsync has been called,
                 // then even if there are in-flight invocations for it, we avoid adding more.
                 // If DisposeAsync has not been called, then we need to increment the ref count to
@@ -332,13 +352,16 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                         {
                             Debug.Assert(_disposedCalled);
                             Debug.Assert(_disposeTcs is not null);
-                            bool completed = _disposeTcs!.TrySetResult(true);
+                            var completed = _disposeTcs!.TrySetResult(true);
                             Debug.Assert(completed);
                         }
                     }
                 }
+
             }
+
         }
+
     }
 
 }

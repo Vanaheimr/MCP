@@ -52,7 +52,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// Gets or sets the JSON serializer options to use when marshalling data to/from JSON.
         /// </summary>
         /// <remarks>
-        /// Defaults to <see cref="McpJsonUtilities.DefaultOptions"/> if left unspecified.
+        /// Defaults to <see cref="MCPJSONUtilities.DefaultOptions"/> if left unspecified.
         /// </remarks>
         public JsonSerializerOptions? SerializerOptions { get; set; }
 

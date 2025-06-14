@@ -42,7 +42,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// </para>
         /// </remarks>
         [JsonPropertyName("protocolVersion")]
-        public required string ProtocolVersion { get; init; }
+        public required String ProtocolVersion { get; init; }
 
         /// <summary>
         /// Gets or sets the client's capabilities.
@@ -61,7 +61,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// Servers may use this information for logging, debugging, or compatibility checks.
         /// </remarks>
         [JsonPropertyName("clientInfo")]
-        public required Implementation ClientInfo { get; init; }
+        public required ClientInfo ClientInfo { get; init; }
 
     }
 

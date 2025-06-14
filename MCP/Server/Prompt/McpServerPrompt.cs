@@ -15,7 +15,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     /// to <see cref="Prompt"/>, which provides the protocol representation of a prompt, and <see cref="McpClientPrompt"/>, which
     /// provides a client-side representation of a prompt). Instances of <see cref="McpServerPrompt"/> can be added into a
     /// <see cref="IServiceCollection"/> to be picked up automatically when <see cref="McpServerFactory"/> is used to create
-    /// an <see cref="IMcpServer"/>, or added into a <see cref="McpServerPrimitiveCollection{McpServerPrompt}"/>.
+    /// an <see cref="IMcpServer"/>, or added into a <see cref="MCPServerPrimitiveCollection{McpServerPrompt}"/>.
     /// </para>
     /// <para>
     /// Most commonly, <see cref="McpServerPrompt"/> instances are created using the static <see cref="M:McpServerPrompt.Create"/> methods.
@@ -35,7 +35,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     ///     <description>
     ///       <see cref="CancellationToken"/> parameters are automatically bound to a <see cref="CancellationToken"/> provided by the
     ///       <see cref="IMcpServer"/> and that respects any <see cref="CancelledNotification"/>s sent by the client for this operation's
-    ///       <see cref="RequestId"/>.
+    ///       <see cref="Request_Id"/>.
     ///     </description>
     ///   </item>
     ///   <item>
@@ -113,7 +113,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     /// Other returned types will result in an <see cref="InvalidOperationException"/> being thrown.
     /// </para>
     /// </remarks>
-    public abstract class McpServerPrompt : IMcpServerPrimitive
+    public abstract class McpServerPrompt : IMCPServerPrimitive
     {
         /// <summary>Initializes a new instance of the <see cref="McpServerPrompt"/> class.</summary>
         protected McpServerPrompt()
@@ -212,7 +212,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         public override string ToString() => ProtocolPrompt.Name;
 
         /// <inheritdoc />
-        string IMcpServerPrimitive.Id => ProtocolPrompt.Name;
+        string IMCPServerPrimitive.Id => ProtocolPrompt.Name;
 
     }
 

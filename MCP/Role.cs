@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 namespace org.GraphDefined.Vanaheimr.Hermod.MCP
 {
 
-
     /// <summary>
     /// A JSON converter for enums that allows customizing the serialized string value of enum members
     /// using the <see cref="JsonStringEnumMemberNameAttribute"/>.
@@ -17,8 +16,12 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
     /// once .NET 9 is fully adopted.
     /// </remarks>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public sealed class CustomizableJsonStringEnumConverter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TEnum> :
-        JsonStringEnumConverter<TEnum> where TEnum : struct, Enum
+    public sealed class CustomizableJsonStringEnumConverter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TEnum>
+
+        : JsonStringEnumConverter<TEnum>
+
+        where TEnum : struct, Enum
+
     {
 
     }

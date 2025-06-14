@@ -18,8 +18,11 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
     /// </remarks>
     internal static partial class UriTemplate
     {
-        /// <summary>Regex pattern for finding URI template expressions and parsing out the operator and varname.</summary>
-        private const string UriTemplateExpressionPattern = """
+
+        /// <summary>
+        /// Regex pattern for finding URI template expressions and parsing out the operator and varname.
+        /// </summary>
+        private const String UriTemplateExpressionPattern = """
         {                                                       # opening brace
             (?<operator>[+#./;?&]?)                             # optional operator
             (?<varname>

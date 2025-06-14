@@ -25,7 +25,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     ///     <description>
     ///       <see cref="CancellationToken"/> parameters are automatically bound to a <see cref="CancellationToken"/> provided by the
     ///       <see cref="IMcpServer"/> and that respects any <see cref="CancelledNotification"/>s sent by the client for this operation's
-    ///       <see cref="RequestId"/>.
+    ///       <see cref="Request_Id"/>.
     ///     </description>
     ///   </item>
     ///   <item>

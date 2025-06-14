@@ -1,5 +1,25 @@
-﻿
+﻿/*
+ * Copyright (c) 2010-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
+ * This file is part of Vanaheimr MCP <https://www.github.com/Vanaheimr/MCP>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#region Usings
+
 using org.GraphDefined.Vanaheimr.Hermod.MCP.Client;
+
+#endregion
 
 namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
 {
@@ -9,6 +29,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     /// </summary>
     public interface IMCPServer : IMCPEndpoint
     {
+
         /// <summary>
         /// Gets the capabilities suspported by the client.
         /// </summary>
@@ -23,7 +44,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// are available when interacting with the client.
         /// </para>
         /// </remarks>
-        ClientCapabilities? ClientCapabilities { get; }
+        ClientCapabilities?  ClientCapabilities    { get; }
 
         /// <summary>
         /// Gets the version and implementation information of the connected client.
@@ -38,7 +59,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// or implementing client-specific behaviors.
         /// </para>
         /// </remarks>
-        Implementation? ClientInfo { get; }
+        ClientInfo?          ClientInfo            { get; }
 
         /// <summary>
         /// Gets the options used to construct this server.
@@ -47,15 +68,15 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// These options define the server's capabilities, protocol version, and other configuration
         /// settings that were used to initialize the server.
         /// </remarks>
-        McpServerOptions ServerOptions { get; }
+        MCPServerOptions     ServerOptions         { get; }
 
         /// <summary>
         /// Gets the service provider for the server.
         /// </summary>
-        IServiceProvider? Services { get; }
+        IServiceProvider?    Services              { get; }
 
         /// <summary>Gets the last logging level set by the client, or <see langword="null"/> if it's never been set.</summary>
-        LoggingLevel? LoggingLevel { get; }
+        LoggingLevel?        LoggingLevel          { get; }
 
         /// <summary>
         /// Runs the server, listening for and handling client requests.

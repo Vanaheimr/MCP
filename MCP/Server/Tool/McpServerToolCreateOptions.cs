@@ -1,17 +1,34 @@
-﻿using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
+﻿/*
+ * Copyright (c) 2010-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
+ * This file is part of Vanaheimr MCP <https://www.github.com/Vanaheimr/MCP>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#region Usings
+
 using System.Text.Json;
+using System.ComponentModel;
+
+using Microsoft.Extensions.AI;
+
+#endregion
 
 namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
 {
 
     /// <summary>
-    /// Provides options for controlling the creation of an <see cref="McpServerTool"/>.
+    /// Provides options for controlling the creation of an <see cref="AMCPServerTool"/>.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -24,34 +41,35 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
     /// provide the same level of configuration flexibility.
     /// </para>
     /// </remarks>
-    public sealed class McpServerToolCreateOptions
+    public sealed class MCPServerToolCreateOptions
     {
+
         /// <summary>
-        /// Gets or sets optional services used in the construction of the <see cref="McpServerTool"/>.
+        /// Gets or sets optional services used in the construction of the <see cref="AMCPServerTool"/>.
         /// </summary>
         /// <remarks>
         /// These services will be used to determine which parameters should be satisifed from dependency injection. As such,
         /// what services are satisfied via this provider should match what's satisfied via the provider passed in at invocation time.
         /// </remarks>
-        public IServiceProvider? Services { get; set; }
+        public IServiceProvider?           Services               { get; set; }
 
         /// <summary>
-        /// Gets or sets the name to use for the <see cref="McpServerTool"/>.
+        /// Gets or sets the name to use for the <see cref="AMCPServerTool"/>.
         /// </summary>
         /// <remarks>
-        /// If <see langword="null"/>, but an <see cref="McpServerToolAttribute"/> is applied to the method,
+        /// If <see langword="null"/>, but an <see cref="MCPServerToolAttribute"/> is applied to the method,
         /// the name from the attribute will be used. If that's not present, a name based on the method's name will be used.
         /// </remarks>
-        public string? Name { get; set; }
+        public String?                     Name                   { get; set; }
 
         /// <summary>
-        /// Gets or set the description to use for the <see cref="McpServerTool"/>.
+        /// Gets or set the description to use for the <see cref="AMCPServerTool"/>.
         /// </summary>
         /// <remarks>
         /// If <see langword="null"/>, but a <see cref="DescriptionAttribute"/> is applied to the method,
         /// the description from that attribute will be used.
         /// </remarks>
-        public string? Description { get; set; }
+        public String?                     Description            { get; set; }
 
         /// <summary>
         /// Gets or sets a human-readable title for the tool that can be displayed to users.
@@ -67,7 +85,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// include spaces, special characters, and be phrased in a more natural language style.
         /// </para>
         /// </remarks>
-        public string? Title { get; set; }
+        public String?                     Title                  { get; set; }
 
         /// <summary>
         /// Gets or sets whether the tool may perform destructive updates to its environment.
@@ -82,7 +100,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// The default is <see langword="true"/>.
         /// </para>
         /// </remarks>
-        public bool? Destructive { get; set; }
+        public Boolean?                    Destructive            { get; set; }
 
         /// <summary>
         /// Gets or sets whether calling the tool repeatedly with the same arguments 
@@ -96,7 +114,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// The default is <see langword="false"/>.
         /// </para>
         /// </remarks>
-        public bool? Idempotent { get; set; }
+        public Boolean?                    Idempotent             { get; set; }
 
         /// <summary>
         /// Gets or sets whether this tool may interact with an "open world" of external entities.
@@ -110,7 +128,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// The default is <see langword="true"/>.
         /// </para>
         /// </remarks>
-        public bool? OpenWorld { get; set; }
+        public Boolean?                    OpenWorld              { get; set; }
 
         /// <summary>
         /// Gets or sets whether this tool does not modify its environment.
@@ -128,15 +146,15 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// The default is <see langword="false"/>.
         /// </para>
         /// </remarks>
-        public bool? ReadOnly { get; set; }
+        public Boolean?                    ReadOnly               { get; set; }
 
         /// <summary>
         /// Gets or sets the JSON serializer options to use when marshalling data to/from JSON.
         /// </summary>
         /// <remarks>
-        /// Defaults to <see cref="McpJsonUtilities.DefaultOptions"/> if left unspecified.
+        /// Defaults to <see cref="MCPJSONUtilities.DefaultOptions"/> if left unspecified.
         /// </remarks>
-        public JsonSerializerOptions? SerializerOptions { get; set; }
+        public JsonSerializerOptions?      SerializerOptions      { get; set; }
 
         /// <summary>
         /// Gets or sets the JSON schema options when creating <see cref="AIFunction"/> from a method.
@@ -144,25 +162,30 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP.Server
         /// <remarks>
         /// Defaults to <see cref="AIJsonSchemaCreateOptions.Default"/> if left unspecified.
         /// </remarks>
-        public AIJsonSchemaCreateOptions? SchemaCreateOptions { get; set; }
+        public AIJsonSchemaCreateOptions?  SchemaCreateOptions    { get; set; }
+
+
+
+
 
         /// <summary>
-        /// Creates a shallow clone of the current <see cref="McpServerToolCreateOptions"/> instance.
+        /// Creates a shallow clone of the current <see cref="MCPServerToolCreateOptions"/> instance.
         /// </summary>
-        internal McpServerToolCreateOptions Clone() =>
-            new McpServerToolCreateOptions
-            {
-                Services = Services,
-                Name = Name,
-                Description = Description,
-                Title = Title,
-                Destructive = Destructive,
-                Idempotent = Idempotent,
-                OpenWorld = OpenWorld,
-                ReadOnly = ReadOnly,
-                SerializerOptions = SerializerOptions,
-                SchemaCreateOptions = SchemaCreateOptions,
-            };
+        internal MCPServerToolCreateOptions Clone()
+
+             => new() {
+                    Services             = Services,
+                    Name                 = Name,
+                    Description          = Description,
+                    Title                = Title,
+                    Destructive          = Destructive,
+                    Idempotent           = Idempotent,
+                    OpenWorld            = OpenWorld,
+                    ReadOnly             = ReadOnly,
+                    SerializerOptions    = SerializerOptions,
+                    SchemaCreateOptions  = SchemaCreateOptions,
+                };
+
     }
 
 }

@@ -12,7 +12,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
     /// <summary>
     /// Class for managing an MCP JSON-RPC session. This covers both MCP clients and servers.
     /// </summary>
-    internal sealed partial class McpSession : IDisposable
+    internal sealed partial class MCPSession : IDisposable
     {
 
         private static readonly Histogram<Double> s_clientSessionDuration = Diagnostics.CreateDurationHistogram(
@@ -24,30 +24,31 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         private static readonly Histogram<Double> s_serverOperationDuration = Diagnostics.CreateDurationHistogram(
             "mcp.server.operation.duration", "Measures the duration of inbound message processing.", longBuckets: false);
 
-        private readonly bool _isServer;
-        private readonly string _transportKind;
-        private readonly ITransport _transport;
-        private readonly RequestHandlers _requestHandlers;
-        private readonly NotificationHandlers _notificationHandlers;
-        private readonly long _sessionStartingTimestamp = Stopwatch.GetTimestamp();
+        private readonly Boolean                       _isServer;
+        private readonly String                        _transportKind;
+        private readonly ITransport                    _transport;
+        private readonly RequestHandlers               _requestHandlers;
+        private readonly NotificationHandlers          _notificationHandlers;
+        private readonly Int64                         _sessionStartingTimestamp  = Stopwatch.GetTimestamp();
 
-        private readonly DistributedContextPropagator _propagator = DistributedContextPropagator.Current;
+        private readonly DistributedContextPropagator  _propagator                = DistributedContextPropagator.Current;
+
 
         /// <summary>Collection of requests sent on this session and waiting for responses.</summary>
-        private readonly ConcurrentDictionary<RequestId, TaskCompletionSource<AJSONRPCMessage>> _pendingRequests = [];
+        private readonly ConcurrentDictionary<Request_Id, TaskCompletionSource<AJSONRPCMessage>> _pendingRequests = [];
         /// <summary>
         /// Collection of requests received on this session and currently being handled. The value provides a <see cref="CancellationTokenSource"/>
         /// that can be used to request cancellation of the in-flight handler.
         /// </summary>
-        private readonly ConcurrentDictionary<RequestId, CancellationTokenSource> _handlingRequests = new();
-        private readonly ILogger _logger;
+        private readonly ConcurrentDictionary<Request_Id, CancellationTokenSource>               _handlingRequests = new();
+        private readonly ILogger                                                                _logger;
 
         // This _sessionId is solely used to identify the session in telemetry and logs.
-        private readonly string _sessionId = Guid.NewGuid().ToString("N");
-        private long _lastRequestId;
+        private readonly String                                                                 _sessionId = Guid.NewGuid().ToString("N");
+        private          Int64                                                                  _lastRequestId;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="McpSession"/> class.
+        /// Initializes a new instance of the <see cref="MCPSession"/> class.
         /// </summary>
         /// <param name="isServer">true if this is a server; false if it's a client.</param>
         /// <param name="transport">An MCP transport implementation.</param>
@@ -55,17 +56,15 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// <param name="requestHandlers">A collection of request handlers.</param>
         /// <param name="notificationHandlers">A collection of notification handlers.</param>
         /// <param name="logger">The logger.</param>
-        public McpSession(
-            bool isServer,
-            ITransport transport,
-            string endpointName,
-            RequestHandlers requestHandlers,
-            NotificationHandlers notificationHandlers,
-            ILogger logger)
+        public MCPSession(Boolean               isServer,
+                          ITransport            transport,
+                          String                endpointName,
+                          RequestHandlers       requestHandlers,
+                          NotificationHandlers  notificationHandlers,
+                          ILogger               logger)
         {
-            //Throw.IfNull(transport);
 
-            _transportKind = transport switch {
+            _transportKind         = transport switch {
                 //StdioClientSessionTransport or StdioServerTransport => "stdio",
                 //StreamClientSessionTransport or StreamServerTransport => "stream",
                 //SseClientSessionTransport or SseResponseStreamTransport => "sse",
@@ -73,18 +72,19 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                 _ => "unknownTransport"
             };
 
-            _isServer = isServer;
-            _transport = transport;
-            EndpointName = endpointName;
-            _requestHandlers = requestHandlers;
-            _notificationHandlers = notificationHandlers;
-            _logger = logger ?? NullLogger.Instance;
+            _isServer              = isServer;
+            _transport             = transport;
+            EndpointName           = endpointName;
+            _requestHandlers       = requestHandlers;
+            _notificationHandlers  = notificationHandlers;
+            _logger                = logger ?? NullLogger.Instance;
+
         }
 
         /// <summary>
         /// Gets and sets the name of the endpoint for logging and debug purposes.
         /// </summary>
-        public string EndpointName { get; set; }
+        public String EndpointName { get; set; }
 
         /// <summary>
         /// Starts processing messages from the transport. This method will block until the transport is disconnected.
@@ -96,14 +96,17 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             {
                 await foreach (var message in _transport.MessageReader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
                 {
+
                     LogMessageRead(EndpointName, message.GetType().Name);
 
                     // Fire and forget the message handling to avoid blocking the transport.
                     _ = ProcessMessageAsync();
-                    async Task ProcessMessageAsync()
-                    {
-                        AJSONRPCMessageWithId? messageWithId = message as AJSONRPCMessageWithId;
-                        CancellationTokenSource? combinedCts = null;
+
+                    async Task ProcessMessageAsync() {
+
+                        AJSONRPCMessageWithId?   messageWithId = message as AJSONRPCMessageWithId;
+                        CancellationTokenSource? combinedCts   = null;
+
                         try
                         {
                             // Register before we yield, so that the tracking is guaranteed to be there
@@ -124,17 +127,18 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                         }
                         catch (Exception ex)
                         {
+
                             // Only send responses for request errors that aren't user-initiated cancellation.
-                            bool isUserCancellation =
-                                ex is OperationCanceledException &&
-                                !cancellationToken.IsCancellationRequested &&
-                                combinedCts?.IsCancellationRequested is true;
+                            Boolean isUserCancellation = ex is OperationCanceledException &&
+                                                         !cancellationToken.IsCancellationRequested &&
+                                                          combinedCts?.     IsCancellationRequested is true;
 
                             if (!isUserCancellation && message is JSONRPCRequest request)
                             {
+
                                 LogRequestHandlerException(EndpointName, request.Method, ex);
 
-                                JSONRPCErrorDetail detail = ex is McpException mcpe ?
+                                JSONRPCErrorDetail detail = ex is MCPException mcpe ?
                                     new()
                                     {
                                         Code = (int)mcpe.ErrorCode,
@@ -142,29 +146,33 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                                     } :
                                     new()
                                     {
-                                        Code = (int)McpErrorCode.InternalError,
+                                        Code = (int)MCPErrorCodes.InternalError,
                                         Message = "An error occurred.",
                                     };
 
-                                await SendMessageAsync(new JSONRPCError
-                                {
-                                    Id = request.Id,
-                                    JsonRpc = "2.0",
-                                    Error = detail,
-                                    RelatedTransport = request.RelatedTransport,
-                                }, cancellationToken).ConfigureAwait(false);
+                                await SendMessageAsync(
+                                          new JSONRPCError(
+                                              request.Id,
+                                              detail
+                                          ) {
+                                                RelatedTransport = request.RelatedTransport,
+                                            },
+                                          cancellationToken
+                                      ).ConfigureAwait(false);
+
                             }
                             else if (ex is not OperationCanceledException)
                             {
                                 if (_logger.IsEnabled(LogLevel.Trace))
                                 {
-                                    //LogMessageHandlerExceptionSensitive(EndpointName, message.GetType().Name, JsonSerializer.Serialize(message, McpJsonUtilities.JsonContext.Default.JsonRpcMessage), ex);
+                                    //LogMessageHandlerExceptionSensitive(EndpointName, message.GetType().Name, JsonSerializer.Serialize(message, MCPJSONUtilities.JsonContext.Default.JsonRpcMessage), ex);
                                 }
                                 else
                                 {
                                     LogMessageHandlerException(EndpointName, message.GetType().Name, ex);
                                 }
                             }
+
                         }
                         finally
                         {
@@ -174,7 +182,9 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                                 combinedCts!.Dispose();
                             }
                         }
+
                     }
+
                 }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -194,30 +204,38 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
 
         private async Task HandleMessageAsync(AJSONRPCMessage message, CancellationToken cancellationToken)
         {
-            Histogram<double> durationMetric = _isServer ? s_serverOperationDuration : s_clientOperationDuration;
-            string method = GetMethodName(message);
 
-            long? startingTimestamp = durationMetric.Enabled ? Stopwatch.GetTimestamp() : null;
+            Histogram<Double> durationMetric     = _isServer
+                                                       ? s_serverOperationDuration
+                                                       : s_clientOperationDuration;
 
-            Activity? activity = Diagnostics.ShouldInstrumentMessage(message) ?
-                Diagnostics.ActivitySource.StartActivity(
-                    CreateActivityName(method),
-                    ActivityKind.Server,
-                    parentContext: _propagator.ExtractActivityContext(message),
-                    links: Diagnostics.ActivityLinkFromCurrent()) :
-                null;
+            String            method             = GetMethodName(message);
 
-            TagList tags = default;
-            bool addTags = activity is { IsAllDataRequested: true } || startingTimestamp is not null;
+            Int64?            startingTimestamp  = durationMetric.Enabled
+                                                       ? Stopwatch.GetTimestamp()
+                                                       : null;
+
+            Activity?         activity           = Diagnostics.ShouldInstrumentMessage(message)
+                                                       ? Diagnostics.ActivitySource.StartActivity(
+                                                             CreateActivityName(method),
+                                                             ActivityKind.Server,
+                                                             parentContext:  _propagator.ExtractActivityContext(message),
+                                                             links:          Diagnostics.ActivityLinkFromCurrent())
+                                                       : null;
+
+            TagList           tags               = default;
+
+            Boolean           addTags            = activity is { IsAllDataRequested: true } || startingTimestamp is not null;
+
             try
             {
+
                 if (addTags)
-                {
                     AddTags(ref tags, activity, message, method);
-                }
 
                 switch (message)
                 {
+
                     case JSONRPCRequest request:
                         var result = await HandleRequest(request, cancellationToken).ConfigureAwait(false);
                         AddResponseTags(ref tags, activity, result, method);
@@ -234,7 +252,9 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                     default:
                         LogEndpointHandlerUnexpectedMessageType(EndpointName, message.GetType().Name);
                         break;
+
                 }
+
             }
             catch (Exception e) when (addTags)
             {
@@ -245,11 +265,15 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             {
                 FinalizeDiagnostics(activity, startingTimestamp, durationMetric, ref tags);
             }
+
         }
 
-        private async Task HandleNotification(JSONRPCNotification notification, CancellationToken cancellationToken)
+        private async Task HandleNotification(JSONRPCNotification  notification,
+                                              CancellationToken    cancellationToken)
         {
-            // Special-case cancellation to cancel a pending operation. (We'll still subsequently invoke a user-specified handler if one exists.)
+
+            // Special-case cancellation to cancel a pending operation.
+            // (We'll still subsequently invoke a user-specified handler if one exists.)
             if (notification.Method == NotificationMethods.CancelledNotification)
             {
                 try
@@ -268,68 +292,95 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             }
 
             // Handle user-defined notifications.
-            await _notificationHandlers.InvokeHandlers(notification.Method, notification, cancellationToken).ConfigureAwait(false);
+            await _notificationHandlers.InvokeHandlers(
+                      notification.Method,
+                      notification,
+                      cancellationToken
+                  ).ConfigureAwait(false);
+
         }
 
-        private void HandleMessageWithId(AJSONRPCMessage message, AJSONRPCMessageWithId messageWithId)
+        private void HandleMessageWithId(AJSONRPCMessage        message,
+                                         AJSONRPCMessageWithId  messageWithId)
         {
+
             if (_pendingRequests.TryRemove(messageWithId.Id, out var tcs))
-            {
                 tcs.TrySetResult(message);
-            }
+
             else
-            {
                 LogNoRequestFoundForMessageWithId(EndpointName, messageWithId.Id);
-            }
+
         }
 
-        private async Task<JsonNode?> HandleRequest(JSONRPCRequest request, CancellationToken cancellationToken)
+        private async Task<JsonNode?> HandleRequest(JSONRPCRequest     request,
+                                                    CancellationToken  cancellationToken)
         {
+
             if (!_requestHandlers.TryGetValue(request.Method, out var handler))
             {
                 LogNoHandlerFoundForRequest(EndpointName, request.Method);
-                throw new McpException($"Method '{request.Method}' is not available.", McpErrorCode.MethodNotFound);
+                throw new MCPException($"Method '{request.Method}' is not available.", MCPErrorCodes.MethodNotFound);
             }
 
             LogRequestHandlerCalled(EndpointName, request.Method);
             JsonNode? result = await handler(request, cancellationToken).ConfigureAwait(false);
             LogRequestHandlerCompleted(EndpointName, request.Method);
 
-            await SendMessageAsync(new JSONRPCResponse
-            {
-                Id = request.Id,
-                Result = result,
-                RelatedTransport = request.RelatedTransport,
-            }, cancellationToken).ConfigureAwait(false);
+            await SendMessageAsync(
+                      new JSONRPCResponse(
+                          request.Id,
+                          result
+                      ) {
+                            RelatedTransport  = request.RelatedTransport
+                        },
+                      cancellationToken
+                  ).ConfigureAwait(false);
 
             return result;
+
         }
 
-        private CancellationTokenRegistration RegisterCancellation(CancellationToken cancellationToken, JSONRPCRequest request)
+        private CancellationTokenRegistration RegisterCancellation(CancellationToken  cancellationToken,
+                                                                   JSONRPCRequest     request)
         {
+
             if (!cancellationToken.CanBeCanceled)
-            {
                 return default;
-            }
 
-            return cancellationToken.Register(static objState =>
-            {
-                var state = (Tuple<McpSession, JSONRPCRequest>)objState!;
-                _ = state.Item1.SendMessageAsync(new JSONRPCNotification
-                {
-                    Method = NotificationMethods.CancelledNotification,
-                    Params = JsonSerializer.SerializeToNode(new CancelledNotification { RequestId = state.Item2.Id }, McpJsonUtilities.JsonContext.Default.CancelledNotification),
-                    RelatedTransport = state.Item2.RelatedTransport,
-                });
-            }, Tuple.Create(this, request));
+            return cancellationToken.Register(
+
+                       static objState => {
+
+                           var state = (Tuple<MCPSession, JSONRPCRequest>) objState!;
+
+                           _ = state.Item1.SendMessageAsync(
+                                   new JSONRPCNotification(
+                                       NotificationMethods.CancelledNotification,
+                                       JsonSerializer.SerializeToNode(
+                                           new CancelledNotification {
+                                               RequestId = state.Item2.Id
+                                           },
+                                           MCPJSONUtilities.JsonContext.Default.CancelledNotification
+                                       )
+                                   //    RelatedTransport  = state.Item2.RelatedTransport
+                                   )
+                               );
+
+                       },
+
+                       Tuple.Create(this, request)
+
+                   );
+
         }
 
-        public IAsyncDisposable RegisterNotificationHandler(string method, Func<JSONRPCNotification, CancellationToken, ValueTask> handler)
+        public IAsyncDisposable RegisterNotificationHandler(String                                                   method,
+                                                            Func<JSONRPCNotification, CancellationToken, ValueTask>  handler)
         {
-            //Throw.IfNullOrWhiteSpace(method);
-            //Throw.IfNull(handler);
-
-            return _notificationHandlers.Register(method, handler);
+            return _notificationHandlers.Register(
+                       method,
+                       handler
+                   );
         }
 
         /// <summary>
@@ -340,46 +391,61 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// <param name="request">The JSON-RPC request to send.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests. The default is <see cref="CancellationToken.None"/>.</param>
         /// <returns>A task containing the server's response.</returns>
-        public async Task<JSONRPCResponse> SendRequestAsync(JSONRPCRequest request, CancellationToken cancellationToken)
+        public async Task<JSONRPCResponse> SendRequestAsync(JSONRPCRequest     request,
+                                                            CancellationToken  cancellationToken)
         {
+
             cancellationToken.ThrowIfCancellationRequested();
 
-            Histogram<double> durationMetric = _isServer ? s_serverOperationDuration : s_clientOperationDuration;
-            string method = request.Method;
+            Histogram<Double> durationMetric     = _isServer
+                                                       ? s_serverOperationDuration
+                                                       : s_clientOperationDuration;
 
-            long? startingTimestamp = durationMetric.Enabled ? Stopwatch.GetTimestamp() : null;
-            using Activity? activity = Diagnostics.ShouldInstrumentMessage(request) ?
-                Diagnostics.ActivitySource.StartActivity(CreateActivityName(method), ActivityKind.Client) :
-                null;
+            String            method             = request.Method;
+
+            Int64?            startingTimestamp  = durationMetric.Enabled
+                                                       ? Stopwatch.GetTimestamp()
+                                                       : null;
+
+            using Activity? activity = Diagnostics.ShouldInstrumentMessage(request)
+                                           ? Diagnostics.ActivitySource.StartActivity(
+                                                 CreateActivityName(method),
+                                                 ActivityKind.Client
+                                             )
+                                           : null;
 
             // Set request ID
             if (request.Id.Id is null)
-            {
-                request = request.WithId(new RequestId(Interlocked.Increment(ref _lastRequestId)));
-            }
+                request = request.WithId(
+                              Request_Id.Parse(
+                                  Interlocked.Increment(
+                                      ref _lastRequestId
+                                  )
+                              )
+                          );
 
-            _propagator.InjectActivityContext(activity, request);
+            _propagator.InjectActivityContext(
+                activity,
+                request
+            );
 
-            TagList tags = default;
-            bool addTags = activity is { IsAllDataRequested: true } || startingTimestamp is not null;
+            TagList tags    = default;
+            Boolean addTags = activity is { IsAllDataRequested: true } || startingTimestamp is not null;
 
             var tcs = new TaskCompletionSource<AJSONRPCMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
             _pendingRequests[request.Id] = tcs;
             try
             {
+
                 if (addTags)
-                {
                     AddTags(ref tags, activity, request, method);
-                }
 
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
-                    //LogSendingRequestSensitive(EndpointName, request.Method, JsonSerializer.Serialize(request, McpJsonUtilities.JsonContext.Default.JsonRpcMessage));
+                    //LogSendingRequestSensitive(EndpointName, request.Method, JsonSerializer.Serialize(request, MCPJSONUtilities.JsonContext.Default.JsonRpcMessage));
                 }
                 else
-                {
                     LogSendingRequest(EndpointName, request.Method);
-                }
 
                 await SendToRelatedTransportAsync(request, cancellationToken).ConfigureAwait(false);
 
@@ -396,31 +462,29 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                 if (response is JSONRPCError error)
                 {
                     LogSendingRequestFailed(EndpointName, request.Method, error.Error.Message, error.Error.Code);
-                    throw new McpException($"Request failed (remote): {error.Error.Message}", (McpErrorCode)error.Error.Code);
+                    throw new MCPException($"Request failed (remote): {error.Error.Message}", (MCPErrorCodes)error.Error.Code);
                 }
 
                 if (response is JSONRPCResponse success)
                 {
+
                     if (addTags)
-                    {
                         AddResponseTags(ref tags, activity, success.Result, method);
-                    }
 
                     if (_logger.IsEnabled(LogLevel.Trace))
-                    {
                         LogRequestResponseReceivedSensitive(EndpointName, request.Method, success.Result?.ToJsonString() ?? "null");
-                    }
                     else
-                    {
                         LogRequestResponseReceived(EndpointName, request.Method);
-                    }
 
                     return success;
+
                 }
 
                 // Unexpected response type
                 LogSendingRequestInvalidResponseType(EndpointName, request.Method);
-                throw new McpException("Invalid response type");
+
+                throw new MCPException("Invalid response type");
+
             }
             catch (Exception ex) when (addTags)
             {
@@ -432,38 +496,47 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                 _pendingRequests.TryRemove(request.Id, out _);
                 FinalizeDiagnostics(activity, startingTimestamp, durationMetric, ref tags);
             }
+
         }
 
-        public async Task SendMessageAsync(AJSONRPCMessage message, CancellationToken cancellationToken = default)
+        public async Task SendMessageAsync(AJSONRPCMessage    message,
+                                           CancellationToken  cancellationToken = default)
         {
-            //Throw.IfNull(message);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            Histogram<double> durationMetric = _isServer ? s_serverOperationDuration : s_clientOperationDuration;
-            string method = GetMethodName(message);
+            Histogram<Double> durationMetric     = _isServer
+                                                       ? s_serverOperationDuration
+                                                       : s_clientOperationDuration;
 
-            long? startingTimestamp = durationMetric.Enabled ? Stopwatch.GetTimestamp() : null;
-            using Activity? activity = Diagnostics.ShouldInstrumentMessage(message) ?
-                Diagnostics.ActivitySource.StartActivity(CreateActivityName(method), ActivityKind.Client) :
-                null;
+            String            method             = GetMethodName(message);
 
-            TagList tags = default;
-            bool addTags = activity is { IsAllDataRequested: true } || startingTimestamp is not null;
+            Int64?            startingTimestamp  = durationMetric.Enabled
+                                                       ? Stopwatch.GetTimestamp()
+                                                       : null;
+
+            using Activity?   activity           = Diagnostics.ShouldInstrumentMessage(message)
+                                                       ? Diagnostics.ActivitySource.StartActivity(
+                                                             CreateActivityName(method),
+                                                             ActivityKind.Client
+                                                         )
+                                                       : null;
+
+            TagList tags    = default;
+            Boolean addTags = activity is { IsAllDataRequested: true } || startingTimestamp is not null;
 
             // propagate trace context
             _propagator?.InjectActivityContext(activity, message);
 
             try
             {
+
                 if (addTags)
-                {
                     AddTags(ref tags, activity, message, method);
-                }
 
                 if (_logger.IsEnabled(LogLevel.Trace))
                 {
-                    //LogSendingMessageSensitive(EndpointName, JsonSerializer.Serialize(message, McpJsonUtilities.JsonContext.Default.JsonRpcMessage));
+                    //LogSendingMessageSensitive(EndpointName, JsonSerializer.Serialize(message, MCPJSONUtilities.JsonContext.Default.JsonRpcMessage));
                 }
                 else
                 {
@@ -481,6 +554,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                 {
                     tcs.TrySetCanceled(default);
                 }
+
             }
             catch (Exception ex) when (addTags)
             {
@@ -491,19 +565,25 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             {
                 FinalizeDiagnostics(activity, startingTimestamp, durationMetric, ref tags);
             }
+
         }
 
         // The JsonRpcMessage should be sent over the RelatedTransport if set. This is used to support the
         // Streamable HTTP transport where the specification states that the server SHOULD include JSON-RPC responses in
         // the HTTP response body for the POST request containing the corresponding JSON-RPC request.
-        private Task SendToRelatedTransportAsync(AJSONRPCMessage message, CancellationToken cancellationToken)
-            => (message.RelatedTransport ?? _transport).SendMessageAsync(message, cancellationToken);
+        private Task SendToRelatedTransportAsync(AJSONRPCMessage    message,
+                                                 CancellationToken  cancellationToken)
+
+            => (message.RelatedTransport ?? _transport).SendMessageAsync(
+                                                            message,
+                                                            cancellationToken
+                                                        );
 
         private static CancelledNotification? GetCancelledNotificationParams(JsonNode? notificationParams)
         {
             try
             {
-                return JsonSerializer.Deserialize(notificationParams, McpJsonUtilities.JsonContext.Default.CancelledNotification);
+                return JsonSerializer.Deserialize(notificationParams, MCPJSONUtilities.JsonContext.Default.CancelledNotification);
             }
             catch
             {
@@ -511,18 +591,23 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             }
         }
 
-        private string CreateActivityName(string method) => method;
+        private String CreateActivityName(String method)
+            => method;
 
-        private static string GetMethodName(AJSONRPCMessage message) =>
-            message switch {
-                JSONRPCRequest      request      => request.Method,
-                JSONRPCNotification notification => notification.Method,
-                _ => "unknownMethod"
-            };
+        private static String GetMethodName(AJSONRPCMessage message)
+            => message switch {
+                   JSONRPCRequest      request      => request.Method,
+                   JSONRPCNotification notification => notification.Method,
+                   _ => "unknownMethod"
+               };
 
-        private void AddTags(ref TagList tags, Activity? activity, AJSONRPCMessage message, string method)
+        private void AddTags(ref TagList      tags,
+                             Activity?        activity,
+                             AJSONRPCMessage  message,
+                             String           method)
         {
-            tags.Add("mcp.method.name", method);
+
+            tags.Add("mcp.method.name",   method);
             tags.Add("network.transport", _transportKind);
 
             // TODO: When using SSE transport, add:
@@ -539,27 +624,30 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                 }
             }
 
-            JsonObject? paramsObj = message switch
-            {
-                JSONRPCRequest request => request.Params as JsonObject,
+            JsonObject? paramsObj = message switch {
+                JSONRPCRequest      request      => request.     Params as JsonObject,
                 JSONRPCNotification notification => notification.Params as JsonObject,
-                _ => null
+                _                                => null
             };
 
-            if (paramsObj == null)
-            {
+            if (paramsObj is null)
                 return;
-            }
 
-            string? target = null;
+            String? target = null;
             switch (method)
             {
+
                 case RequestMethods.ToolsCall:
                 case RequestMethods.PromptsGet:
                     target = GetStringProperty(paramsObj, "name");
                     if (target is not null)
                     {
-                        tags.Add(method == RequestMethods.ToolsCall ? "mcp.tool.name" : "mcp.prompt.name", target);
+                        tags.Add(
+                            method == RequestMethods.ToolsCall
+                                          ? "mcp.tool.name"
+                                          : "mcp.prompt.name",
+                            target
+                        );
                     }
                     break;
 
@@ -569,29 +657,31 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                 case NotificationMethods.ResourceUpdatedNotification:
                     target = GetStringProperty(paramsObj, "uri");
                     if (target is not null)
-                    {
                         tags.Add("mcp.resource.uri", target);
-                    }
                     break;
+
             }
 
             if (activity is { IsAllDataRequested: true })
-            {
-                activity.DisplayName = target == null ? method : $"{method} {target}";
-            }
+                activity.DisplayName = target == null
+                                           ? method
+                                           : $"{method} {target}";
+
         }
 
-        private static void AddExceptionTags(ref TagList tags, Activity? activity, Exception e)
+        private static void AddExceptionTags(ref TagList  tags,
+                                             Activity?    activity,
+                                             Exception    e)
         {
-            if (e is AggregateException ae && ae.InnerException is not null and not AggregateException)
-            {
-                e = ae.InnerException;
-            }
 
-            int? intErrorCode =
-                (int?)((e as McpException)?.ErrorCode) is int errorCode ? errorCode :
-                e is JsonException ? (int)McpErrorCode.ParseError :
-                null;
+            if (e is AggregateException ae && ae.InnerException is not null and not AggregateException)
+                e = ae.InnerException;
+
+            Int32? intErrorCode = (Int32?) ((e as MCPException)?.ErrorCode) is int errorCode
+                                               ? errorCode
+                                               : e is JsonException
+                                                     ? (Int32) MCPErrorCodes.ParseError
+                                                     : null;
 
             string? errorType = intErrorCode?.ToString() ?? e.GetType().FullName;
             tags.Add("error.type", errorType);
@@ -601,41 +691,61 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             }
 
             if (activity is { IsAllDataRequested: true })
-            {
-                activity.SetStatus(ActivityStatusCode.Error, e.Message);
-            }
+                activity.SetStatus(
+                    ActivityStatusCode.Error,
+                    e.Message
+                );
+
         }
 
-        private static void AddResponseTags(ref TagList tags, Activity? activity, JsonNode? response, string method)
+        private static void AddResponseTags(ref TagList  tags,
+                                            Activity?    activity,
+                                            JsonNode?    response,
+                                            String       method)
         {
             if (response is JsonObject jsonObject
                 && jsonObject.TryGetPropertyValue("isError", out var isError)
                 && isError?.GetValueKind() == JsonValueKind.True)
             {
+
                 if (activity is { IsAllDataRequested: true })
                 {
-                    string? content = null;
-                    if (jsonObject.TryGetPropertyValue("content", out var prop) && prop != null)
-                    {
-                        content = prop.ToJsonString();
-                    }
 
-                    activity.SetStatus(ActivityStatusCode.Error, content);
+                    String? content = null;
+
+                    if (jsonObject.TryGetPropertyValue("content", out var prop) && prop is not null)
+                        content = prop.ToJsonString();
+
+                    activity.SetStatus(
+                        ActivityStatusCode.Error,
+                        content
+                    );
+
                 }
 
-                tags.Add("error.type", method == RequestMethods.ToolsCall ? "tool_error" : "_OTHER");
+                tags.Add(
+                    "error.type",
+                    method == RequestMethods.ToolsCall
+                                  ? "tool_error"
+                                  : "_OTHER"
+                );
+
             }
         }
 
-        private static void FinalizeDiagnostics(
-            Activity? activity, long? startingTimestamp, Histogram<double> durationMetric, ref TagList tags)
+        private static void FinalizeDiagnostics(Activity?          activity,
+                                                Int64?             startingTimestamp,
+                                                Histogram<Double>  durationMetric,
+                                                ref TagList        tags)
         {
             try
             {
+
                 if (startingTimestamp is not null)
-                {
-                    durationMetric.Record(GetElapsed(startingTimestamp.Value).TotalSeconds, tags);
-                }
+                    durationMetric.Record(
+                        GetElapsed(startingTimestamp.Value).TotalSeconds,
+                        tags
+                    );
 
                 if (activity is { IsAllDataRequested: true })
                 {
@@ -644,6 +754,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                         activity.AddTag(tag.Key, tag.Value);
                     }
                 }
+
             }
             finally
             {
@@ -653,15 +764,21 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
 
         public void Dispose()
         {
-            Histogram<double> durationMetric = _isServer ? s_serverSessionDuration : s_clientSessionDuration;
+
+            Histogram<Double> durationMetric = _isServer
+                                                   ? s_serverSessionDuration
+                                                   : s_clientSessionDuration;
+
             if (durationMetric.Enabled)
             {
+
                 TagList tags = default;
                 tags.Add("network.transport", _transportKind);
 
                 // TODO: Add server.address and server.port on client-side when using SSE transport,
                 // client.* attributes are not added to metrics because of cardinality
                 durationMetric.Record(GetElapsed(_sessionStartingTimestamp).TotalSeconds, tags);
+
             }
 
             // Complete all pending requests with cancellation
@@ -671,88 +788,84 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
             }
 
             _pendingRequests.Clear();
+
         }
 
-#if !NET
-    private static readonly double s_timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
-#endif
 
-        private static TimeSpan GetElapsed(long startingTimestamp) =>
-#if NET
-            Stopwatch.GetElapsedTime(startingTimestamp);
-#else
-        new((long)(s_timestampToTicks * (Stopwatch.GetTimestamp() - startingTimestamp)));
-#endif
+        private static TimeSpan GetElapsed(Int64 startingTimestamp)
+             => Stopwatch.GetElapsedTime(startingTimestamp);
 
-        private static string? GetStringProperty(JsonObject parameters, string propName)
+        private static String? GetStringProperty(JsonObject  parameters,
+                                                 String      propName)
         {
+
             if (parameters.TryGetPropertyValue(propName, out var prop) && prop?.GetValueKind() is JsonValueKind.String)
-            {
-                return prop.GetValue<string>();
-            }
+                return prop.GetValue<String>();
 
             return null;
+
         }
 
         [LoggerMessage(Level = LogLevel.Information, Message = "{EndpointName} message processing canceled.")]
-        private partial void LogEndpointMessageProcessingCanceled(string endpointName);
+        private partial void LogEndpointMessageProcessingCanceled(String endpointName);
 
         [LoggerMessage(Level = LogLevel.Information, Message = "{EndpointName} method '{Method}' request handler called.")]
-        private partial void LogRequestHandlerCalled(string endpointName, string method);
+        private partial void LogRequestHandlerCalled(String endpointName, String method);
 
         [LoggerMessage(Level = LogLevel.Information, Message = "{EndpointName} method '{Method}' request handler completed.")]
-        private partial void LogRequestHandlerCompleted(string endpointName, string method);
+        private partial void LogRequestHandlerCompleted(String endpointName, String method);
 
         [LoggerMessage(Level = LogLevel.Warning, Message = "{EndpointName} method '{Method}' request handler failed.")]
-        private partial void LogRequestHandlerException(string endpointName, string method, Exception exception);
+        private partial void LogRequestHandlerException(String endpointName, String method, Exception exception);
 
         [LoggerMessage(Level = LogLevel.Information, Message = "{EndpointName} received request for unknown request ID '{RequestId}'.")]
-        private partial void LogNoRequestFoundForMessageWithId(string endpointName, RequestId requestId);
+        private partial void LogNoRequestFoundForMessageWithId(String endpointName, Request_Id requestId);
 
         [LoggerMessage(Level = LogLevel.Warning, Message = "{EndpointName} request failed for method '{Method}': {ErrorMessage} ({ErrorCode}).")]
-        private partial void LogSendingRequestFailed(string endpointName, string method, string errorMessage, int errorCode);
+        private partial void LogSendingRequestFailed(String endpointName, String method, String errorMessage, int errorCode);
 
         [LoggerMessage(Level = LogLevel.Warning, Message = "{EndpointName} received invalid response for method '{Method}'.")]
-        private partial void LogSendingRequestInvalidResponseType(string endpointName, string method);
+        private partial void LogSendingRequestInvalidResponseType(String endpointName, String method);
 
         [LoggerMessage(Level = LogLevel.Debug, Message = "{EndpointName} sending method '{Method}' request.")]
-        private partial void LogSendingRequest(string endpointName, string method);
+        private partial void LogSendingRequest(String endpointName, String method);
 
         [LoggerMessage(Level = LogLevel.Trace, Message = "{EndpointName} sending method '{Method}' request. Request: '{Request}'.")]
-        private partial void LogSendingRequestSensitive(string endpointName, string method, string request);
+        private partial void LogSendingRequestSensitive(String endpointName, String method, String request);
 
         [LoggerMessage(Level = LogLevel.Information, Message = "{EndpointName} canceled request '{RequestId}' per client notification. Reason: '{Reason}'.")]
-        private partial void LogRequestCanceled(string endpointName, RequestId requestId, string? reason);
+        private partial void LogRequestCanceled(String endpointName, Request_Id requestId, string? reason);
 
         [LoggerMessage(Level = LogLevel.Debug, Message = "{EndpointName} Request response received for method {method}")]
-        private partial void LogRequestResponseReceived(string endpointName, string method);
+        private partial void LogRequestResponseReceived(String endpointName, String method);
 
         [LoggerMessage(Level = LogLevel.Trace, Message = "{EndpointName} Request response received for method {method}. Response: '{Response}'.")]
-        private partial void LogRequestResponseReceivedSensitive(string endpointName, string method, string response);
+        private partial void LogRequestResponseReceivedSensitive(String endpointName, String method, String response);
 
         [LoggerMessage(Level = LogLevel.Debug, Message = "{EndpointName} read {MessageType} message from channel.")]
-        private partial void LogMessageRead(string endpointName, string messageType);
+        private partial void LogMessageRead(String endpointName, String messageType);
 
         [LoggerMessage(Level = LogLevel.Warning, Message = "{EndpointName} message handler {MessageType} failed.")]
-        private partial void LogMessageHandlerException(string endpointName, string messageType, Exception exception);
+        private partial void LogMessageHandlerException(String endpointName, String messageType, Exception exception);
 
         [LoggerMessage(Level = LogLevel.Trace, Message = "{EndpointName} message handler {MessageType} failed. Message: '{Message}'.")]
-        private partial void LogMessageHandlerExceptionSensitive(string endpointName, string messageType, string message, Exception exception);
+        private partial void LogMessageHandlerExceptionSensitive(String endpointName, String messageType, String message, Exception exception);
 
         [LoggerMessage(Level = LogLevel.Warning, Message = "{EndpointName} received unexpected {MessageType} message type.")]
-        private partial void LogEndpointHandlerUnexpectedMessageType(string endpointName, string messageType);
+        private partial void LogEndpointHandlerUnexpectedMessageType(String endpointName, String messageType);
 
         [LoggerMessage(Level = LogLevel.Warning, Message = "{EndpointName} received request for method '{Method}', but no handler is available.")]
-        private partial void LogNoHandlerFoundForRequest(string endpointName, string method);
+        private partial void LogNoHandlerFoundForRequest(String endpointName, String method);
 
         [LoggerMessage(Level = LogLevel.Debug, Message = "{EndpointName} waiting for response to request '{RequestId}' for method '{Method}'.")]
-        private partial void LogRequestSentAwaitingResponse(string endpointName, string method, RequestId requestId);
+        private partial void LogRequestSentAwaitingResponse(String endpointName, String method, Request_Id requestId);
 
         [LoggerMessage(Level = LogLevel.Debug, Message = "{EndpointName} sending message.")]
-        private partial void LogSendingMessage(string endpointName);
+        private partial void LogSendingMessage(String endpointName);
 
         [LoggerMessage(Level = LogLevel.Trace, Message = "{EndpointName} sending message. Message: '{Message}'.")]
-        private partial void LogSendingMessageSensitive(string endpointName, string message);
+        private partial void LogSendingMessageSensitive(String endpointName, String message);
+
     }
 
 }

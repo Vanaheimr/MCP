@@ -11,7 +11,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
     /// <remarks>
     /// The <see cref="RequestContext{TParams}"/> encapsulates all contextual information for handling an MCP request.
     /// This type is typically received as a parameter in handler delegates registered with <see cref="IMcpServerBuilder"/>,
-    /// and may be injected as parameters into <see cref="McpServerTool"/>s.
+    /// and may be injected as parameters into <see cref="AMCPServerTool"/>s.
     /// </remarks>
     public sealed class RequestContext<TParams>
     {
@@ -45,7 +45,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// <summary>Gets or sets the services associated with this request.</summary>
         /// <remarks>
         /// This may not be the same instance stored in <see cref="IMcpServer.Services"/>
-        /// if <see cref="McpServerOptions.ScopeRequests"/> was true, in which case this
+        /// if <see cref="MCPServerOptions.ScopeRequests"/> was true, in which case this
         /// might be a scoped <see cref="IServiceProvider"/> derived from the server's
         /// <see cref="IMcpServer.Services"/>.
         /// </remarks>

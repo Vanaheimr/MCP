@@ -23,7 +23,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// This must match the ID of an in-flight request that the sender wishes to cancel.
         /// </remarks>
         [JsonPropertyName("requestId")]
-        public RequestId RequestId { get; set; }
+        public Request_Id RequestId { get; set; }
 
         /// <summary>
         /// Gets or sets an optional string describing the reason for the cancellation request.

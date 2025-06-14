@@ -1,12 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+﻿/*
+ * Copyright (c) 2010-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
+ * This file is part of Vanaheimr MCP <https://www.github.com/Vanaheimr/MCP>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 namespace org.GraphDefined.Vanaheimr.Hermod.MCP
 {
+
+    public delegate ValueTask  RegisterNotificationDelegate (JSONRPCNotification? JSONRPCNotification,
+                                                             CancellationToken    CancellationToken);
+
 
     /// <summary>
     /// Represents a client or server Model Context Protocol (MCP) endpoint.
@@ -21,8 +35,8 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
     /// </list>
     /// </para>
     /// <para>
-    /// <see cref="IMCPEndpoint"/> serves as the base interface for both <see cref="IMcpClient"/> and 
-    /// <see cref="IMcpServer"/> interfaces, providing the common functionality needed for MCP protocol 
+    /// <see cref="IMCPEndpoint"/> serves as the base interface for both <see cref="IMCPClient"/> and 
+    /// <see cref="IMCPServer"/> interfaces, providing the common functionality needed for MCP protocol 
     /// communication. Most applications will use these more specific interfaces rather than working with 
     /// <see cref="IMCPEndpoint"/> directly.
     /// </para>
@@ -40,12 +54,14 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests. The default is <see cref="CancellationToken.None"/>.</param>
         /// <returns>A task containing the endpoint's response.</returns>
         /// <exception cref="InvalidOperationException">The transport is not connected, or another error occurs during request processing.</exception>
-        /// <exception cref="McpException">An error occured during request processing.</exception>
+        /// <exception cref="MCPException">An error occured during request processing.</exception>
         /// <remarks>
         /// This method provides low-level access to send raw JSON-RPC requests. For most use cases,
         /// consider using the strongly-typed extension methods that provide a more convenient API.
         /// </remarks>
-        Task<JSONRPCResponse> SendRequestAsync(JSONRPCRequest request, CancellationToken cancellationToken = default);
+        Task<JSONRPCResponse> SendRequestAsync(JSONRPCRequest     request,
+                                               CancellationToken  cancellationToken   = default);
+
 
         /// <summary>
         /// Sends a JSON-RPC message to the connected endpoint.
@@ -62,20 +78,23 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// <para>
         /// This method provides low-level access to send any JSON-RPC message. For specific message types,
         /// consider using the higher-level methods such as <see cref="SendRequestAsync"/> or extension methods
-        /// like <see cref="McpEndpointExtensions.SendNotificationAsync(IMCPEndpoint, string, CancellationToken)"/>,
+        /// like <see cref="McpEndpointExtensions.SendNotificationAsync(IMCPEndpoint, String, CancellationToken)"/>,
         /// which provide a simpler API.
         /// </para>
         /// <para>
         /// The method will serialize the message and transmit it using the underlying transport mechanism.
         /// </para>
         /// </remarks>
-        Task SendMessageAsync(AJSONRPCMessage message, CancellationToken cancellationToken = default);
+        Task SendMessageAsync(AJSONRPCMessage    message,
+                              CancellationToken  cancellationToken   = default);
+
 
         /// <summary>Registers a handler to be invoked when a notification for the specified method is received.</summary>
         /// <param name="method">The notification method.</param>
         /// <param name="handler">The handler to be invoked.</param>
         /// <returns>An <see cref="IDisposable"/> that will remove the registered handler when disposed.</returns>
-        IAsyncDisposable RegisterNotificationHandler(string method, Func<JSONRPCNotification, CancellationToken, ValueTask> handler);
+        IAsyncDisposable RegisterNotificationHandler(String                        method,
+                                                     RegisterNotificationDelegate  handler);
 
     }
 
