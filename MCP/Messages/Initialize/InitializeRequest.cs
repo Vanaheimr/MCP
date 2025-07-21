@@ -255,9 +255,9 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                 {
 
                     case JTokenType.String:
-                        if (!Request_Id.TryParse(id.Value<String>() ?? "", out var parsedRequestId))
+                        if (!Request_Id.TryParse(id.Value<String>() ?? "", out var parsedRequestId, out var errorResponse))
                         {
-                            ErrorResponse = "The given request identification must be a valid string!";
+                            ErrorResponse = $"The given request identification must be a valid string: {errorResponse}";
                             return false;
                         }
                         requestId = parsedRequestId;

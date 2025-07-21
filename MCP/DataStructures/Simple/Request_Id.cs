@@ -22,6 +22,7 @@ using org.GraphDefined.Vanaheimr.Hermod.DNS;
 using org.GraphDefined.Vanaheimr.Illias;
 using System.ComponentModel;
 using System.Configuration;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -93,10 +94,15 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         public static Request_Id Parse(String Value)
             => new (Value);
 
-        public static Boolean TryParse(String Value, out Request_Id RequestId)
+        public static Boolean TryParse(String                               Value,
+                                       [NotNullWhen(true)]  out Request_Id  RequestId,
+                                       [NotNullWhen(false)] out String?     ErrorResponse)
         {
-            RequestId = new Request_Id(Value);
+
+            RequestId      = new Request_Id(Value);
+            ErrorResponse  = null;
             return true;
+
         }
 
 

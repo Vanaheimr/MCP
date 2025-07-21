@@ -266,7 +266,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
 
                 #region Id                  [mandatory]
 
-                var id                = JSON["id"];
+                var id                 = JSON["id"];
                 Request_Id? requestId  = null;
 
                 if (id is null)
@@ -279,9 +279,9 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                 {
 
                     case JTokenType.String:
-                        if (!Request_Id.TryParse(id.Value<String>() ?? "", out var parsedRequestId))
+                        if (!Request_Id.TryParse(id.Value<String>() ?? "", out var parsedRequestId, out var errorResponse))
                         {
-                            ErrorResponse = "The given request identification must be a valid string!";
+                            ErrorResponse = $"The given request identification must be a valid string: {errorResponse}";
                             return false;
                         }
                         requestId = parsedRequestId;
@@ -486,7 +486,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         #endregion
 
 
-        public override bool Equals(InitializeResponse? AResponse)
+        public override Boolean Equals(InitializeResponse? AResponse)
         {
             throw new NotImplementedException();
         }
