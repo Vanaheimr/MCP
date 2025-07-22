@@ -18,12 +18,11 @@
 #region Usings
 
 using System.Net.Sockets;
-using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
-using Newtonsoft.Json.Linq;
-using org.GraphDefined.Vanaheimr.Hermod.HTTP;
-using org.GraphDefined.Vanaheimr.Hermod.MCP;
+
 using org.GraphDefined.Vanaheimr.Illias;
+using org.GraphDefined.Vanaheimr.Hermod.MCP;
+using org.GraphDefined.Vanaheimr.Hermod.HTTP;
 
 #endregion
 
