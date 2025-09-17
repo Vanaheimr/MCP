@@ -30,7 +30,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod
 {
 
     public delegate Task OnMCPRequestDelegate(JSONRPCRequest     Request,
-                                              NetworkStream      Stream,
+                                              Stream             Stream,
                                               CancellationToken  CancellationToken);
 
 
@@ -51,12 +51,34 @@ namespace org.GraphDefined.Vanaheimr.Hermod
                                TCPEchoLoggingDelegate?  LoggingHandler   = null)
 
         : AHTTPTestServer(
+
               IPAddress,
               TCPPort,
+              null, //HTTPServerName
               BufferSize,
               ReceiveTimeout,
               SendTimeout,
-              LoggingHandler
+              LoggingHandler,
+
+              null, //ServerCertificateSelector   
+              null, //ClientCertificateValidator  
+              null, //LocalCertificateSelector    
+              null, //AllowedTLSProtocols         
+              null, //ClientCertificateRequired   
+              null, //CheckCertificateRevocation  
+
+              null, //ConnectionIdBuilder         
+              null, //MaxClientConnections        
+              null, //DNSClient                   
+
+              null, //DisableMaintenanceTasks     
+              null, //MaintenanceInitialDelay     
+              null, //MaintenanceEvery            
+
+              null, //DisableWardenTasks          
+              null, //WardenInitialDelay          
+              null  //WardenCheckEvery            
+
           )
 
     {
@@ -104,10 +126,10 @@ namespace org.GraphDefined.Vanaheimr.Hermod
 
         #region (override) ProcessHTTPRequest(Request, Stream, CancellationToken = default)
 
-        protected async override Task
+        protected async override Task<HTTPResponse>
 
             ProcessHTTPRequest(HTTPRequest        Request,
-                               NetworkStream      Stream,
+                               Stream             Stream,
                                CancellationToken  CancellationToken   = default)
 
         {
@@ -115,22 +137,12 @@ namespace org.GraphDefined.Vanaheimr.Hermod
             #region Check for content type JSON
 
             if (Request.ContentType != HTTPContentType.Application.JSON_UTF8)
-            {
-
-                await SendResponse(
-                          Stream,
-                          new HTTPResponse.Builder(Request) {
-                              HTTPStatusCode  = HTTPStatusCode.UnsupportedMediaType,
-                              ContentType     = HTTPContentType.Text.PLAIN,
-                              Content         = $"Unsupported content type: '{Request.ContentType}'!".ToUTF8Bytes(),
-                              Connection      = ConnectionType.Close
-                          },
-                          CancellationToken
-                      );
-
-                return;
-
-            }
+                return new HTTPResponse.Builder(Request) {
+                           HTTPStatusCode  = HTTPStatusCode.UnsupportedMediaType,
+                           ContentType     = HTTPContentType.Text.PLAIN,
+                           Content         = $"Unsupported content type: '{Request.ContentType}'!".ToUTF8Bytes(),
+                           Connection      = ConnectionType.Close
+                       };
 
             #endregion
 
@@ -140,18 +152,12 @@ namespace org.GraphDefined.Vanaheimr.Hermod
                  !Request.IsChunkedTransferEncoding)
             {
 
-                await SendResponse(
-                          Stream,
-                          new HTTPResponse.Builder(Request) {
-                              HTTPStatusCode  = HTTPStatusCode.BadRequest,
-                              ContentType     = HTTPContentType.Text.PLAIN,
-                              Content         = $"Missing or invalid HTTP body!".ToUTF8Bytes(),
-                              Connection      = ConnectionType.Close
-                          },
-                          CancellationToken
-                      );
-
-                return;
+                return new HTTPResponse.Builder(Request) {
+                           HTTPStatusCode  = HTTPStatusCode.BadRequest,
+                           ContentType     = HTTPContentType.Text.PLAIN,
+                           Content         = $"Missing or invalid HTTP body!".ToUTF8Bytes(),
+                           Connection      = ConnectionType.Close
+                       };
 
             }
 
@@ -164,18 +170,12 @@ namespace org.GraphDefined.Vanaheimr.Hermod
             if (jsonRPC is null)
             {
 
-                await SendResponse(
-                          Stream,
-                          new HTTPResponse.Builder(Request) {
-                              HTTPStatusCode  = HTTPStatusCode.BadRequest,
-                              ContentType     = HTTPContentType.Text.PLAIN,
-                              Content         = $"Invalid JSON body!".ToUTF8Bytes(),
-                              Connection      = ConnectionType.Close
-                          },
-                          CancellationToken
-                      );
-
-                return;
+                return new HTTPResponse.Builder(Request) {
+                           HTTPStatusCode  = HTTPStatusCode.BadRequest,
+                           ContentType     = HTTPContentType.Text.PLAIN,
+                           Content         = $"Invalid JSON body!".ToUTF8Bytes(),
+                           Connection      = ConnectionType.Close
+                       };
 
             }
 
@@ -192,17 +192,12 @@ namespace org.GraphDefined.Vanaheimr.Hermod
                                          null,
                                          CancellationToken))
             {
-                await SendResponse(
-                          Stream,
-                          new HTTPResponse.Builder(Request) {
-                              HTTPStatusCode  = HTTPStatusCode.BadRequest,
-                              ContentType     = HTTPContentType.Text.PLAIN,
-                              Content         = $"The JSON RPC request could not be parsed: {errorResponse}".ToUTF8Bytes(),
-                              Connection      = ConnectionType.Close
-                          },
-                          CancellationToken
-                      );
-                return;
+                return new HTTPResponse.Builder(Request) {
+                           HTTPStatusCode  = HTTPStatusCode.BadRequest,
+                           ContentType     = HTTPContentType.Text.PLAIN,
+                           Content         = $"The JSON RPC request could not be parsed: {errorResponse}".ToUTF8Bytes(),
+                           Connection      = ConnectionType.Close
+                       };
             }
 
             #endregion
@@ -216,6 +211,14 @@ namespace org.GraphDefined.Vanaheimr.Hermod
                           CancellationToken
                       )
                   );
+
+
+            return new HTTPResponse.Builder(Request) {
+                           HTTPStatusCode  = HTTPStatusCode.BadRequest,
+                           ContentType     = HTTPContentType.Text.PLAIN,
+                           Content         = $"NoOp!".ToUTF8Bytes(),
+                           Connection      = ConnectionType.Close
+                       };
 
         }
 

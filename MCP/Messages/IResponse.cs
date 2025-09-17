@@ -31,7 +31,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// The timestamp of the response.
         /// </summary>
         [Mandatory]
-        DateTime  ResponseTimestamp    { get; }
+        DateTimeOffset  ResponseTimestamp    { get; }
 
 
         ///// <summary>
@@ -44,7 +44,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// The runtime of the request.
         /// </summary>
         [Mandatory]
-        TimeSpan  Runtime              { get; }
+        TimeSpan        Runtime              { get; }
 
     }
 

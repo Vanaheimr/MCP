@@ -55,7 +55,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// The timestamp of the notification message creation.
         /// </summary>
         [Mandatory]
-        public DateTime           NotificationTimestamp    { get; }
+        public DateTimeOffset     NotificationTimestamp    { get; }
 
         /// <summary>
         /// An event tracking identification for correlating this notification with other events.
@@ -77,7 +77,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                              String?            JSONRPCVersion          = null,
                              JObject?           CustomData              = null,
 
-                             DateTime?          NotificationTimestamp   = null,
+                             DateTimeOffset?    NotificationTimestamp   = null,
                              EventTracking_Id?  EventTrackingId         = null,
                              CancellationToken  CancellationToken       = default)
 

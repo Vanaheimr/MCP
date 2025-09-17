@@ -34,7 +34,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// The timestamp of the notification message creation.
         /// </summary>
         [Mandatory]
-        DateTime           NotificationTimestamp    { get; }
+        DateTimeOffset     NotificationTimestamp    { get; }
 
         /// <summary>
         /// The event tracking identification for correlating this notification with other events.

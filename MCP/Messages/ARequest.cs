@@ -63,7 +63,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// The timestamp of the request message creation.
         /// </summary>
         [Mandatory]
-        public DateTime                RequestTimestamp     { get; }
+        public DateTimeOffset          RequestTimestamp     { get; }
 
         /// <summary>
         /// The timeout of this request.
@@ -92,7 +92,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                         String?            JSONRPCVersion      = null,
                         JObject?           CustomData          = null,
 
-                        DateTime?          RequestTimestamp    = null,
+                        DateTimeOffset?    RequestTimestamp    = null,
                         TimeSpan?          RequestTimeout      = null,
                         EventTracking_Id?  EventTrackingId     = null,
                         CancellationToken  CancellationToken   = default)

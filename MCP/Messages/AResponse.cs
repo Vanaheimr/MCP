@@ -65,7 +65,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// <param name="CustomData">An optional custom data object allowing to store any kind of customer specific data.</param>
         public AResponse(TRequest                 Request,
                        //  Result                   Result,
-                         DateTime?                ResponseTimestamp     = null,
+                         DateTimeOffset?          ResponseTimestamp     = null,
 
                          String?                  JSONRPCVersion        = null,
                          JObject?                 CustomData            = null,
@@ -109,7 +109,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// <param name="CustomData">An optional custom data object allowing to store any kind of customer specific data.</param>
         public AResponse(TRequest                 Request,
                          //Result                   Result,
-                         DateTime                 ResponseTimestamp,
+                         DateTimeOffset           ResponseTimestamp,
 
                          String?                  JSONRPCVersion        = null,
                          JObject?                 CustomData            = null,
@@ -238,7 +238,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// The timestamp of the response message.
         /// </summary>
         [Mandatory]
-        public DateTime              ResponseTimestamp      { get; }
+        public DateTimeOffset        ResponseTimestamp      { get; }
 
         /// <summary>
         /// The runtime of the request.
@@ -273,7 +273,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// <param name="CustomData">An optional custom data object allowing to store any kind of customer specific data.</param>
         public AResponse(//Result                   Result,
                          Request_Id Id,
-                         DateTime                 ResponseTimestamp,
+                         DateTimeOffset           ResponseTimestamp,
                          TimeSpan                 Runtime,
 
                          String?                  JSONRPCVersion        = null,

@@ -40,7 +40,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
         /// The timestamp of the request message creation.
         /// </summary>
         [Mandatory]
-        DateTime           RequestTimestamp     { get; }
+        DateTimeOffset     RequestTimestamp     { get; }
 
         /// <summary>
         /// The timeout of this request.
