@@ -50,15 +50,15 @@ namespace org.GraphDefined.Vanaheimr.Hermod
                                TimeSpan?                SendTimeout      = null,
                                TCPEchoLoggingDelegate?  LoggingHandler   = null)
 
-        : AHTTPTestServer(
+        : AHTTPServer(
 
               IPAddress,
               TCPPort,
               null, //HTTPServerName
-              BufferSize,
-              ReceiveTimeout,
-              SendTimeout,
-              LoggingHandler,
+            //  BufferSize,
+            //  ReceiveTimeout,
+            //  SendTimeout,
+            //  LoggingHandler,
 
               null, //ServerCertificateSelector   
               null, //ClientCertificateValidator  
