@@ -344,14 +344,14 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
 
                 #region Capabilities        [optional]
 
-                if (!parameters.ParseOptionalJSON("capabilities",
-                                                  "server capabilities",
-                                                  ServerCapabilities.TryParse,
-                                                  out ServerCapabilities? capabilities,
-                                                  out ErrorResponse))
-                {
+                parameters.ParseOptionalJSON("capabilities",
+                                             "server capabilities",
+                                             ServerCapabilities.TryParse,
+                                             out ServerCapabilities? capabilities,
+                                             out ErrorResponse);
+
+                if (ErrorResponse is not null)
                     return false;
-                }
 
                 #endregion
 

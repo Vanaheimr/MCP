@@ -296,7 +296,7 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
                     return false;
                 }
 
-                if (jsonRPCVersion != Method_Initialize)
+                if (method != Method_Initialize)
                 {
                     ErrorResponse = $"The method must be '{Method_Initialize}'!";
                     return false;
@@ -326,23 +326,23 @@ namespace org.GraphDefined.Vanaheimr.Hermod.MCP
 
                 #region Capabilities        [optional]
 
-                if (!parameters.ParseOptionalJSON("capabilities",
-                                                  "client capabilities",
-                                                  ClientCapabilities.TryParse,
-                                                  out ClientCapabilities? capabilities,
-                                                  out ErrorResponse))
-                {
+                parameters.ParseOptionalJSON("capabilities",
+                                             "client capabilities",
+                                             ClientCapabilities.TryParse,
+                                             out ClientCapabilities? capabilities,
+                                             out ErrorResponse);
+
+                if (ErrorResponse is not null)
                     return false;
-                }
 
                 #endregion
 
                 #region ProtocolVersion     [mandatory]
 
-                if (!JSON.ParseMandatoryText("protocolVersion",
-                                             "protocol version",
-                                             out String? protocolVersion,
-                                             out ErrorResponse))
+                if (!parameters.ParseMandatoryText("protocolVersion",
+                                                   "protocol version",
+                                                   out String? protocolVersion,
+                                                   out ErrorResponse))
                 {
                     return false;
                 }
